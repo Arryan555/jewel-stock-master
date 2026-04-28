@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Jewel Suite"
+version = "1.0.0"
+id = "artifacts/jewel-suite"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 18659
+
+[services.development]
+run = "pnpm --filter @workspace/jewel-suite run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/jewel-suite", "run", "build" ]
+publicDir = "artifacts/jewel-suite/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "18659"
+BASE_PATH = "/"

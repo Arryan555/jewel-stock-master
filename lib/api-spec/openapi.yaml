@@ -3,20 +3,24 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Jewellery management API — retail, wholesale, GST, Girvi, ledger, reports
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
-    description: Health operations
+  - name: customers
+  - name: products
+  - name: invoices
+  - name: girvi
+  - name: ledger
+  - name: reports
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +28,880 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /customers:
+    get:
+      operationId: listCustomers
+      tags: [customers]
+      parameters:
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [retail, wholesale, all]
+        - in: query
+          name: search
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Customer" }
+    post:
+      operationId: createCustomer
+      tags: [customers]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CustomerInput" }
+      responses:
+        "200":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Customer" }
+  /customers/{id}:
+    get:
+      operationId: getCustomer
+      tags: [customers]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/CustomerDetail" }
+    put:
+      operationId: updateCustomer
+      tags: [customers]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CustomerInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Customer" }
+    delete:
+      operationId: deleteCustomer
+      tags: [customers]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ok" }
+
+  /products:
+    get:
+      operationId: listProducts
+      tags: [products]
+      parameters:
+        - in: query
+          name: metal
+          schema:
+            type: string
+            enum: [gold, silver, diamond, platinum, all]
+        - in: query
+          name: search
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Product" }
+    post:
+      operationId: createProduct
+      tags: [products]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ProductInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Product" }
+  /products/{id}:
+    get:
+      operationId: getProduct
+      tags: [products]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Product" }
+    put:
+      operationId: updateProduct
+      tags: [products]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ProductInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Product" }
+    delete:
+      operationId: deleteProduct
+      tags: [products]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ok" }
+
+  /invoices:
+    get:
+      operationId: listInvoices
+      tags: [invoices]
+      parameters:
+        - in: query
+          name: type
+          schema:
+            type: string
+            enum: [retail, wholesale, all]
+        - in: query
+          name: customerId
+          schema: { type: string }
+        - in: query
+          name: from
+          schema: { type: string, format: date }
+        - in: query
+          name: to
+          schema: { type: string, format: date }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Invoice" }
+    post:
+      operationId: createInvoice
+      tags: [invoices]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/InvoiceInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InvoiceDetail" }
+  /invoices/{id}:
+    get:
+      operationId: getInvoice
+      tags: [invoices]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InvoiceDetail" }
+    delete:
+      operationId: deleteInvoice
+      tags: [invoices]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ok" }
+  /invoices/{id}/payment:
+    post:
+      operationId: recordInvoicePayment
+      tags: [invoices]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PaymentInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InvoiceDetail" }
+
+  /girvi:
+    get:
+      operationId: listGirviLoans
+      tags: [girvi]
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [active, closed, overdue, all]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/GirviLoan" }
+    post:
+      operationId: createGirviLoan
+      tags: [girvi]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/GirviLoanInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GirviLoanDetail" }
+  /girvi/{id}:
+    get:
+      operationId: getGirviLoan
+      tags: [girvi]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GirviLoanDetail" }
+    delete:
+      operationId: deleteGirviLoan
+      tags: [girvi]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ok" }
+  /girvi/{id}/payment:
+    post:
+      operationId: recordGirviPayment
+      tags: [girvi]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/GirviPaymentInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GirviLoanDetail" }
+  /girvi/{id}/close:
+    post:
+      operationId: closeGirviLoan
+      tags: [girvi]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GirviLoanDetail" }
+
+  /ledger/entries:
+    get:
+      operationId: listLedgerEntries
+      tags: [ledger]
+      parameters:
+        - in: query
+          name: customerId
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/LedgerEntry" }
+    post:
+      operationId: createLedgerEntry
+      tags: [ledger]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LedgerEntryInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LedgerEntry" }
+  /ledger/entries/{id}:
+    delete:
+      operationId: deleteLedgerEntry
+      tags: [ledger]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ok" }
+  /ledger/balances:
+    get:
+      operationId: getLedgerBalances
+      tags: [ledger]
+      summary: Per-customer running balance (credit minus debit)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/CustomerBalance" }
+
+  /reports/dashboard:
+    get:
+      operationId: getDashboardSummary
+      tags: [reports]
+      summary: Headline KPIs for the dashboard
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DashboardSummary" }
+  /reports/sales-trend:
+    get:
+      operationId: getSalesTrend
+      tags: [reports]
+      summary: Daily sales totals for the last 30 days
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/SalesTrendPoint" }
+  /reports/gst:
+    get:
+      operationId: getGstReport
+      tags: [reports]
+      parameters:
+        - in: query
+          name: from
+          schema: { type: string, format: date }
+        - in: query
+          name: to
+          schema: { type: string, format: date }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GstReport" }
+  /reports/stock:
+    get:
+      operationId: getStockReport
+      tags: [reports]
+      summary: Current stock by metal & category with valuation
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/StockReport" }
+  /reports/girvi-summary:
+    get:
+      operationId: getGirviSummary
+      tags: [reports]
+      summary: Active loan counts, principal, accrued interest, overdue
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GirviSummary" }
+  /reports/top-customers:
+    get:
+      operationId: getTopCustomers
+      tags: [reports]
+      summary: Top 10 customers by purchase value
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/TopCustomer" }
+  /reports/recent-activity:
+    get:
+      operationId: getRecentActivity
+      tags: [reports]
+      summary: Recent invoices, girvi events, and ledger entries
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/ActivityItem" }
+  /reports/metal-rates:
+    get:
+      operationId: getMetalRates
+      tags: [reports]
+      summary: Current configured metal rates per gram
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/MetalRate" }
+
 components:
   schemas:
+    Ok:
+      type: object
+      properties:
+        ok: { type: boolean }
+      required: [ok]
+
     HealthStatus:
       type: object
       properties:
-        status:
-          type: string
-      required:
-        - status
+        status: { type: string }
+      required: [status]
 
+    Customer:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        phone: { type: string }
+        email: { type: string, nullable: true }
+        address: { type: string, nullable: true }
+        city: { type: string, nullable: true }
+        type: { type: string, enum: [retail, wholesale] }
+        gstNumber: { type: string, nullable: true }
+        openingBalance: { type: number }
+        createdAt: { type: string, format: date-time }
+      required: [id, name, phone, type, openingBalance, createdAt]
+    CustomerInput:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        phone: { type: string, minLength: 1 }
+        email: { type: string, nullable: true }
+        address: { type: string, nullable: true }
+        city: { type: string, nullable: true }
+        type: { type: string, enum: [retail, wholesale] }
+        gstNumber: { type: string, nullable: true }
+        openingBalance: { type: number }
+      required: [name, phone, type, openingBalance]
+    CustomerDetail:
+      allOf:
+        - $ref: "#/components/schemas/Customer"
+        - type: object
+          properties:
+            balance: { type: number }
+            totalPurchases: { type: number }
+            invoiceCount: { type: integer }
+            activeGirviCount: { type: integer }
+          required: [balance, totalPurchases, invoiceCount, activeGirviCount]
+
+    Product:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        category: { type: string }
+        metal: { type: string, enum: [gold, silver, diamond, platinum] }
+        purity: { type: string }
+        weightGrams: { type: number }
+        ratePerGram: { type: number }
+        makingChargePercent: { type: number }
+        stoneCharges: { type: number }
+        hsnCode: { type: string }
+        gstRate: { type: number }
+        stockQuantity: { type: integer }
+        sku: { type: string }
+        createdAt: { type: string, format: date-time }
+      required:
+        [id, name, category, metal, purity, weightGrams, ratePerGram, makingChargePercent, stoneCharges, hsnCode, gstRate, stockQuantity, sku, createdAt]
+    ProductInput:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        category: { type: string, minLength: 1 }
+        metal: { type: string, enum: [gold, silver, diamond, platinum] }
+        purity: { type: string, minLength: 1 }
+        weightGrams: { type: number }
+        ratePerGram: { type: number }
+        makingChargePercent: { type: number }
+        stoneCharges: { type: number }
+        hsnCode: { type: string }
+        gstRate: { type: number }
+        stockQuantity: { type: integer }
+        sku: { type: string, minLength: 1 }
+      required:
+        [name, category, metal, purity, weightGrams, ratePerGram, makingChargePercent, stoneCharges, hsnCode, gstRate, stockQuantity, sku]
+
+    InvoiceItem:
+      type: object
+      properties:
+        productId: { type: string }
+        productName: { type: string }
+        metal: { type: string }
+        purity: { type: string }
+        weightGrams: { type: number }
+        ratePerGram: { type: number }
+        makingChargePercent: { type: number }
+        stoneCharges: { type: number }
+        gstRate: { type: number }
+        amount: { type: number }
+      required: [productId, productName, metal, purity, weightGrams, ratePerGram, makingChargePercent, stoneCharges, gstRate, amount]
+    InvoiceItemInput:
+      type: object
+      properties:
+        productId: { type: string }
+        weightGrams: { type: number }
+        ratePerGram: { type: number }
+        makingChargePercent: { type: number }
+        stoneCharges: { type: number }
+        gstRate: { type: number }
+      required: [productId, weightGrams, ratePerGram, makingChargePercent, stoneCharges, gstRate]
+    Invoice:
+      type: object
+      properties:
+        id: { type: string }
+        invoiceNumber: { type: string }
+        type: { type: string, enum: [retail, wholesale] }
+        customerId: { type: string }
+        customerName: { type: string }
+        date: { type: string, format: date-time }
+        subtotal: { type: number }
+        gstAmount: { type: number }
+        discount: { type: number }
+        total: { type: number }
+        paidAmount: { type: number }
+        balance: { type: number }
+        status: { type: string, enum: [paid, partial, unpaid] }
+      required:
+        [id, invoiceNumber, type, customerId, customerName, date, subtotal, gstAmount, discount, total, paidAmount, balance, status]
+    InvoiceDetail:
+      allOf:
+        - $ref: "#/components/schemas/Invoice"
+        - type: object
+          properties:
+            items:
+              type: array
+              items: { $ref: "#/components/schemas/InvoiceItem" }
+            notes: { type: string, nullable: true }
+          required: [items]
+    InvoiceInput:
+      type: object
+      properties:
+        type: { type: string, enum: [retail, wholesale] }
+        customerId: { type: string }
+        date: { type: string, format: date-time }
+        discount: { type: number }
+        notes: { type: string, nullable: true }
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/InvoiceItemInput" }
+          minItems: 1
+        paidAmount: { type: number }
+      required: [type, customerId, date, discount, items, paidAmount]
+    PaymentInput:
+      type: object
+      properties:
+        amount: { type: number }
+        note: { type: string, nullable: true }
+      required: [amount]
+
+    GirviLoan:
+      type: object
+      properties:
+        id: { type: string }
+        loanNumber: { type: string }
+        customerId: { type: string }
+        customerName: { type: string }
+        itemDescription: { type: string }
+        metal: { type: string, enum: [gold, silver] }
+        purity: { type: string }
+        weightGrams: { type: number }
+        loanAmount: { type: number }
+        interestRatePct: { type: number }
+        loanDate: { type: string, format: date-time }
+        dueDate: { type: string, format: date-time }
+        status: { type: string, enum: [active, closed, overdue] }
+        paidAmount: { type: number }
+        accruedInterest: { type: number }
+        outstanding: { type: number }
+      required:
+        [id, loanNumber, customerId, customerName, itemDescription, metal, purity, weightGrams, loanAmount, interestRatePct, loanDate, dueDate, status, paidAmount, accruedInterest, outstanding]
+    GirviLoanDetail:
+      allOf:
+        - $ref: "#/components/schemas/GirviLoan"
+        - type: object
+          properties:
+            payments:
+              type: array
+              items: { $ref: "#/components/schemas/GirviPayment" }
+          required: [payments]
+    GirviLoanInput:
+      type: object
+      properties:
+        customerId: { type: string }
+        itemDescription: { type: string, minLength: 1 }
+        metal: { type: string, enum: [gold, silver] }
+        purity: { type: string, minLength: 1 }
+        weightGrams: { type: number }
+        loanAmount: { type: number }
+        interestRatePct: { type: number }
+        loanDate: { type: string, format: date-time }
+        dueDate: { type: string, format: date-time }
+      required:
+        [customerId, itemDescription, metal, purity, weightGrams, loanAmount, interestRatePct, loanDate, dueDate]
+    GirviPayment:
+      type: object
+      properties:
+        id: { type: string }
+        date: { type: string, format: date-time }
+        amount: { type: number }
+        note: { type: string, nullable: true }
+      required: [id, date, amount]
+    GirviPaymentInput:
+      type: object
+      properties:
+        amount: { type: number }
+        note: { type: string, nullable: true }
+      required: [amount]
+
+    LedgerEntry:
+      type: object
+      properties:
+        id: { type: string }
+        customerId: { type: string }
+        customerName: { type: string }
+        date: { type: string, format: date-time }
+        type: { type: string, enum: [credit, debit] }
+        amount: { type: number }
+        description: { type: string }
+        reference: { type: string, nullable: true }
+      required: [id, customerId, customerName, date, type, amount, description]
+    LedgerEntryInput:
+      type: object
+      properties:
+        customerId: { type: string }
+        date: { type: string, format: date-time }
+        type: { type: string, enum: [credit, debit] }
+        amount: { type: number }
+        description: { type: string, minLength: 1 }
+        reference: { type: string, nullable: true }
+      required: [customerId, date, type, amount, description]
+    CustomerBalance:
+      type: object
+      properties:
+        customerId: { type: string }
+        customerName: { type: string }
+        balance: { type: number }
+        type: { type: string, enum: [retail, wholesale] }
+      required: [customerId, customerName, balance, type]
+
+    DashboardSummary:
+      type: object
+      properties:
+        todaySales: { type: number }
+        monthSales: { type: number }
+        receivable: { type: number }
+        payable: { type: number }
+        activeLoans: { type: integer }
+        loanPrincipal: { type: number }
+        overdueLoans: { type: integer }
+        stockValuation: { type: number }
+        invoicesThisMonth: { type: integer }
+        retailShare: { type: number }
+        wholesaleShare: { type: number }
+        gstCollectedMonth: { type: number }
+      required:
+        [todaySales, monthSales, receivable, payable, activeLoans, loanPrincipal, overdueLoans, stockValuation, invoicesThisMonth, retailShare, wholesaleShare, gstCollectedMonth]
+    SalesTrendPoint:
+      type: object
+      properties:
+        date: { type: string, format: date }
+        retail: { type: number }
+        wholesale: { type: number }
+        total: { type: number }
+      required: [date, retail, wholesale, total]
+    GstSlabRow:
+      type: object
+      properties:
+        gstRate: { type: number }
+        taxableAmount: { type: number }
+        cgst: { type: number }
+        sgst: { type: number }
+        totalTax: { type: number }
+        invoiceCount: { type: integer }
+      required: [gstRate, taxableAmount, cgst, sgst, totalTax, invoiceCount]
+    GstReport:
+      type: object
+      properties:
+        from: { type: string, format: date }
+        to: { type: string, format: date }
+        totalTaxable: { type: number }
+        totalCgst: { type: number }
+        totalSgst: { type: number }
+        totalTax: { type: number }
+        slabs:
+          type: array
+          items: { $ref: "#/components/schemas/GstSlabRow" }
+      required: [from, to, totalTaxable, totalCgst, totalSgst, totalTax, slabs]
+    StockGroup:
+      type: object
+      properties:
+        metal: { type: string }
+        category: { type: string }
+        items: { type: integer }
+        totalWeight: { type: number }
+        totalValue: { type: number }
+      required: [metal, category, items, totalWeight, totalValue]
+    StockReport:
+      type: object
+      properties:
+        totalItems: { type: integer }
+        totalWeight: { type: number }
+        totalValue: { type: number }
+        groups:
+          type: array
+          items: { $ref: "#/components/schemas/StockGroup" }
+      required: [totalItems, totalWeight, totalValue, groups]
+    GirviSummary:
+      type: object
+      properties:
+        activeCount: { type: integer }
+        overdueCount: { type: integer }
+        closedCount: { type: integer }
+        totalPrincipal: { type: number }
+        totalAccruedInterest: { type: number }
+        totalOutstanding: { type: number }
+        totalCollateralWeight: { type: number }
+      required:
+        [activeCount, overdueCount, closedCount, totalPrincipal, totalAccruedInterest, totalOutstanding, totalCollateralWeight]
+    TopCustomer:
+      type: object
+      properties:
+        customerId: { type: string }
+        customerName: { type: string }
+        type: { type: string, enum: [retail, wholesale] }
+        totalPurchases: { type: number }
+        invoiceCount: { type: integer }
+      required: [customerId, customerName, type, totalPurchases, invoiceCount]
+    ActivityItem:
+      type: object
+      properties:
+        id: { type: string }
+        kind: { type: string, enum: [invoice, girvi_created, girvi_payment, girvi_closed, ledger] }
+        title: { type: string }
+        subtitle: { type: string }
+        amount: { type: number, nullable: true }
+        date: { type: string, format: date-time }
+      required: [id, kind, title, subtitle, date]
+    MetalRate:
+      type: object
+      properties:
+        metal: { type: string, enum: [gold, silver, diamond, platinum] }
+        purity: { type: string }
+        ratePerGram: { type: number }
+        updatedAt: { type: string, format: date-time }
+      required: [metal, purity, ratePerGram, updatedAt]
