@@ -20,7 +20,10 @@ import {
   GetTopCustomersResponse,
   GetRecentActivityResponse,
   GetMetalRatesResponse,
+  GetDaybookResponse,
+  GetDaybookQueryParams,
 } from "@workspace/api-zod";
+import { repairJobsTable, schemeInstallmentsTable } from "@workspace/db";
 import { computeAccruedInterest, computeGirviStatus, n } from "../lib/calc";
 
 const router: IRouter = Router();
@@ -494,6 +497,238 @@ router.get("/reports/metal-rates", async (_req, res): Promise<void> => {
         a.metal.localeCompare(b.metal) || a.purity.localeCompare(b.purity),
     );
   res.json(GetMetalRatesResponse.parse(result));
+});
+
+router.get("/reports/daybook", async (req, res): Promise<void> => {
+  const params = GetDaybookQueryParams.safeParse(req.query);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+  const dateStr =
+    params.data.date ?? new Date().toISOString().slice(0, 10);
+  const start = new Date(`${dateStr}T00:00:00.000Z`);
+  const end = new Date(`${dateStr}T23:59:59.999Z`);
+
+  // Sales (invoices created on this date)
+  const invoices = await db
+    .select({ inv: invoicesTable, customerName: customersTable.name })
+    .from(invoicesTable)
+    .leftJoin(customersTable, eq(customersTable.id, invoicesTable.customerId))
+    .where(and(gte(invoicesTable.date, start), lte(invoicesTable.date, end)));
+
+  // Girvi loans issued (cash out) and payments received (cash in)
+  const loansIssued = await db
+    .select({ l: girviLoansTable, customerName: customersTable.name })
+    .from(girviLoansTable)
+    .leftJoin(customersTable, eq(customersTable.id, girviLoansTable.customerId))
+    .where(
+      and(
+        gte(girviLoansTable.loanDate, start),
+        lte(girviLoansTable.loanDate, end),
+      ),
+    );
+  const girviPays = await db
+    .select({
+      p: girviPaymentsTable,
+      l: girviLoansTable,
+      customerName: customersTable.name,
+    })
+    .from(girviPaymentsTable)
+    .leftJoin(girviLoansTable, eq(girviLoansTable.id, girviPaymentsTable.loanId))
+    .leftJoin(
+      customersTable,
+      eq(customersTable.id, girviLoansTable.customerId),
+    )
+    .where(
+      and(
+        gte(girviPaymentsTable.date, start),
+        lte(girviPaymentsTable.date, end),
+      ),
+    );
+
+  // Ledger entries on this date
+  const ledgers = await db
+    .select({
+      l: ledgerEntriesTable,
+      customerName: customersTable.name,
+    })
+    .from(ledgerEntriesTable)
+    .leftJoin(
+      customersTable,
+      eq(customersTable.id, ledgerEntriesTable.customerId),
+    )
+    .where(
+      and(
+        gte(ledgerEntriesTable.date, start),
+        lte(ledgerEntriesTable.date, end),
+      ),
+    );
+
+  // Repairs delivered (collected) today
+  const repairsDelivered = await db
+    .select({
+      r: repairJobsTable,
+      customerName: customersTable.name,
+    })
+    .from(repairJobsTable)
+    .leftJoin(customersTable, eq(customersTable.id, repairJobsTable.customerId))
+    .where(
+      and(
+        gte(repairJobsTable.deliveredDate, start),
+        lte(repairJobsTable.deliveredDate, end),
+      ),
+    );
+
+  const entries: {
+    time: string;
+    kind:
+      | "sale"
+      | "payment_in"
+      | "payment_out"
+      | "girvi_loan"
+      | "girvi_payment"
+      | "repair_collected"
+      | "scheme_installment";
+    reference: string;
+    party: string;
+    amount: number;
+    mode: string;
+  }[] = [];
+
+  let cashIn = 0,
+    cashOut = 0,
+    upiIn = 0,
+    cardIn = 0,
+    bankIn = 0,
+    netSales = 0;
+
+  for (const r of invoices) {
+    const paid = n(r.inv.paidAmount);
+    const total = n(r.inv.total);
+    netSales += total;
+    if (paid > 0) {
+      const mode = r.inv.paymentMode || "cash";
+      if (mode === "upi") upiIn += paid;
+      else if (mode === "card") cardIn += paid;
+      else if (mode === "bank") bankIn += paid;
+      else cashIn += paid;
+      entries.push({
+        time: r.inv.date.toISOString(),
+        kind: "sale",
+        reference: r.inv.invoiceNumber,
+        party: r.customerName ?? "(deleted)",
+        amount: paid,
+        mode,
+      });
+    }
+  }
+
+  for (const r of loansIssued) {
+    const amt = n(r.l.loanAmount);
+    cashOut += amt;
+    entries.push({
+      time: r.l.loanDate.toISOString(),
+      kind: "girvi_loan",
+      reference: r.l.loanNumber,
+      party: r.customerName ?? "(deleted)",
+      amount: -amt,
+      mode: "cash",
+    });
+  }
+
+  for (const r of girviPays) {
+    if (!r.l) continue;
+    const amt = n(r.p.amount);
+    cashIn += amt;
+    entries.push({
+      time: r.p.date.toISOString(),
+      kind: "girvi_payment",
+      reference: r.l.loanNumber,
+      party: r.customerName ?? "(deleted)",
+      amount: amt,
+      mode: "cash",
+    });
+  }
+
+  for (const r of ledgers) {
+    const amt = n(r.l.amount);
+    if (r.l.type === "credit") {
+      cashIn += amt;
+      entries.push({
+        time: r.l.date.toISOString(),
+        kind: "payment_in",
+        reference: r.l.reference ?? r.l.description,
+        party: r.customerName ?? "(deleted)",
+        amount: amt,
+        mode: "cash",
+      });
+    } else {
+      cashOut += amt;
+      entries.push({
+        time: r.l.date.toISOString(),
+        kind: "payment_out",
+        reference: r.l.reference ?? r.l.description,
+        party: r.customerName ?? "(deleted)",
+        amount: -amt,
+        mode: "cash",
+      });
+    }
+  }
+
+  for (const r of repairsDelivered) {
+    const amt = n(r.r.paidAmount);
+    if (amt > 0) {
+      cashIn += amt;
+      entries.push({
+        time: r.r.deliveredDate!.toISOString(),
+        kind: "repair_collected",
+        reference: r.r.ticketNumber,
+        party: r.customerName ?? "(deleted)",
+        amount: amt,
+        mode: "cash",
+      });
+    }
+  }
+
+  // Scheme installments paid today
+  const schemePays = await db
+    .select()
+    .from(schemeInstallmentsTable)
+    .where(
+      and(
+        gte(schemeInstallmentsTable.paidAt, start),
+        lte(schemeInstallmentsTable.paidAt, end),
+      ),
+    );
+  for (const s of schemePays) {
+    const amt = n(s.paidAmount);
+    cashIn += amt;
+    entries.push({
+      time: s.paidAt.toISOString(),
+      kind: "scheme_installment",
+      reference: `Installment #${s.installmentNumber}`,
+      party: "Scheme account",
+      amount: amt,
+      mode: "cash",
+    });
+  }
+
+  entries.sort((a, b) => a.time.localeCompare(b.time));
+
+  res.json(
+    GetDaybookResponse.parse({
+      date: dateStr,
+      openingCash: 0,
+      cashIn,
+      cashOut,
+      upiIn,
+      cardIn,
+      bankIn,
+      netSales,
+      entries,
+    }),
+  );
 });
 
 export default router;

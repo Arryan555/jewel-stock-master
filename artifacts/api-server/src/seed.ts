@@ -4,14 +4,33 @@ import {
   productsTable,
   invoicesTable,
   invoiceItemsTable,
+  invoiceOldGoldTable,
   girviLoansTable,
   girviPaymentsTable,
   ledgerEntriesTable,
+  karigarsTable,
+  karigarJobsTable,
+  repairJobsTable,
+  estimatesTable,
+  estimateItemsTable,
+  schemePlansTable,
+  schemeAccountsTable,
+  schemeInstallmentsTable,
+  shopSettingsTable,
 } from "@workspace/db";
 import { sql } from "drizzle-orm";
 import { computeInvoiceTotals, computeItem, nextSerial } from "./lib/calc";
 
 async function clear() {
+  await db.delete(schemeInstallmentsTable);
+  await db.delete(schemeAccountsTable);
+  await db.delete(schemePlansTable);
+  await db.delete(estimateItemsTable);
+  await db.delete(estimatesTable);
+  await db.delete(repairJobsTable);
+  await db.delete(karigarJobsTable);
+  await db.delete(karigarsTable);
+  await db.delete(invoiceOldGoldTable);
   await db.delete(invoiceItemsTable);
   await db.delete(invoicesTable);
   await db.delete(girviPaymentsTable);
@@ -19,6 +38,7 @@ async function clear() {
   await db.delete(ledgerEntriesTable);
   await db.delete(productsTable);
   await db.delete(customersTable);
+  await db.delete(shopSettingsTable);
 }
 
 async function seed() {
@@ -539,11 +559,231 @@ async function seed() {
     },
   ]);
 
+  // ===== Shop settings =====
+  await db.insert(shopSettingsTable).values({
+    id: 1,
+    shopName: "Jewel Suite",
+    tagline: "Premium Jewellers • Established 1972",
+    address: "12, Pedder Road",
+    city: "Mumbai 400026",
+    phone: "+91 22 2345 6789",
+    email: "hello@jewelsuite.in",
+    gstin: "27AABCJ1234F1Z9",
+    pan: "AABCJ1234F",
+    upiId: "jewelsuite@hdfcbank",
+    bankName: "HDFC Bank",
+    bankAccount: "50100123456789",
+    bankIfsc: "HDFC0000123",
+    invoiceTerms:
+      "• Hallmarked metal as per BIS standards.\n• Goods once sold can be exchanged within 30 days.\n• All disputes subject to Mumbai jurisdiction only.",
+  });
+
+  // ===== Karigars =====
+  const karigars = await db
+    .insert(karigarsTable)
+    .values([
+      { name: "Ramesh Kumawat", phone: "+91 98765 11223", speciality: "Necklaces, kundan", address: "Zaveri Bazaar, Mumbai" },
+      { name: "Suresh Soni", phone: "+91 99887 33445", speciality: "Bangles, polishing", address: "Ghatkopar, Mumbai" },
+      { name: "Vikram Jadhav", phone: "+91 90091 77882", speciality: "Repairs, soldering", address: "Dadar, Mumbai" },
+    ])
+    .returning();
+
+  let karigarJobCounter = 0;
+  await db.insert(karigarJobsTable).values([
+    {
+      jobNumber: nextSerial("JOB", karigarJobCounter++),
+      karigarId: karigars[0].id,
+      itemDescription: "22K bridal necklace set",
+      metal: "gold",
+      purity: "22K",
+      issuedWeight: "85.500",
+      expectedWastagePct: "2.50",
+      laborCharge: "8500",
+      issuedDate: new Date(today.getTime() - 12 * 86400000),
+      expectedDate: new Date(today.getTime() + 8 * 86400000),
+      status: "issued",
+    },
+    {
+      jobNumber: nextSerial("JOB", karigarJobCounter++),
+      karigarId: karigars[1].id,
+      itemDescription: "22K thick kada bangle",
+      metal: "gold",
+      purity: "22K",
+      issuedWeight: "42.300",
+      receivedWeight: "41.150",
+      expectedWastagePct: "3.00",
+      laborCharge: "3200",
+      issuedDate: new Date(today.getTime() - 25 * 86400000),
+      receivedDate: new Date(today.getTime() - 4 * 86400000),
+      status: "received",
+    },
+    {
+      jobNumber: nextSerial("JOB", karigarJobCounter++),
+      karigarId: karigars[0].id,
+      itemDescription: "Antique jhumka pair",
+      metal: "gold",
+      purity: "22K",
+      issuedWeight: "18.750",
+      expectedWastagePct: "2.00",
+      laborCharge: "2500",
+      issuedDate: new Date(today.getTime() - 5 * 86400000),
+      expectedDate: new Date(today.getTime() + 10 * 86400000),
+      status: "issued",
+    },
+  ]);
+
+  // ===== Repair tickets =====
+  let repairCounter = 0;
+  await db.insert(repairJobsTable).values([
+    {
+      ticketNumber: nextSerial("REP", repairCounter++),
+      customerId: customers[1].id,
+      itemDescription: "Diamond ring — broken claw",
+      metal: "gold",
+      purity: "18K",
+      weightGrams: "5.250",
+      issue: "One prong of solitaire is bent and stone is loose.",
+      estimatedCost: "1800",
+      receivedDate: new Date(today.getTime() - 6 * 86400000),
+      promisedDate: new Date(today.getTime() + 4 * 86400000),
+      status: "in_progress",
+    },
+    {
+      ticketNumber: nextSerial("REP", repairCounter++),
+      customerId: customers[3].id,
+      itemDescription: "22K chain — lock broken",
+      metal: "gold",
+      purity: "22K",
+      weightGrams: "12.800",
+      issue: "Replace lock and polish entire chain.",
+      estimatedCost: "950",
+      receivedDate: new Date(today.getTime() - 2 * 86400000),
+      promisedDate: new Date(today.getTime() + 5 * 86400000),
+      status: "received",
+    },
+    {
+      ticketNumber: nextSerial("REP", repairCounter++),
+      customerId: customers[0].id,
+      itemDescription: "Silver anklet pair — re-sizing",
+      metal: "silver",
+      purity: "92.5",
+      weightGrams: "62.300",
+      issue: "Reduce size by 2cm and polish.",
+      estimatedCost: "650",
+      receivedDate: new Date(today.getTime() - 14 * 86400000),
+      deliveredDate: new Date(today.getTime() - 3 * 86400000),
+      finalCost: "650",
+      paidAmount: "650",
+      status: "delivered",
+    },
+  ]);
+
+  // ===== Saving scheme plans =====
+  const plans = await db
+    .insert(schemePlansTable)
+    .values([
+      { name: "11+1 Gold Saver", monthlyAmount: "5000", durationMonths: 11, bonusMonths: 1, description: "Pay 11 monthly installments, redeem 12 months worth of jewellery.", active: "true" },
+      { name: "12+1 Silver Saver", monthlyAmount: "2000", durationMonths: 12, bonusMonths: 1, description: "Yearlong silver scheme with one month bonus on maturity.", active: "true" },
+      { name: "Festive Diamond Plan", monthlyAmount: "10000", durationMonths: 10, bonusMonths: 1, description: "10-month plan towards diamond jewellery for the festive season.", active: "true" },
+    ])
+    .returning();
+
+  // ===== Scheme accounts (one in progress, one matured) =====
+  let schemeCounter = 0;
+  const schemeAccs = await db
+    .insert(schemeAccountsTable)
+    .values([
+      {
+        accountNumber: nextSerial("SCH", schemeCounter++),
+        planId: plans[0].id,
+        customerId: customers[2].id,
+        startDate: new Date(today.getTime() - 5 * 30 * 86400000),
+        status: "active",
+      },
+      {
+        accountNumber: nextSerial("SCH", schemeCounter++),
+        planId: plans[1].id,
+        customerId: customers[4].id,
+        startDate: new Date(today.getTime() - 11 * 30 * 86400000),
+        status: "active",
+      },
+    ])
+    .returning();
+
+  // 5 installments paid on the first account
+  for (let i = 0; i < 5; i++) {
+    await db.insert(schemeInstallmentsTable).values({
+      accountId: schemeAccs[0].id,
+      installmentNumber: i + 1,
+      paidAmount: "5000",
+      paidAt: new Date(today.getTime() - (5 - i) * 30 * 86400000),
+      note: i === 0 ? "Opening installment" : null,
+    });
+  }
+  // 10 installments on the second account (close to maturing)
+  for (let i = 0; i < 10; i++) {
+    await db.insert(schemeInstallmentsTable).values({
+      accountId: schemeAccs[1].id,
+      installmentNumber: i + 1,
+      paidAmount: "2000",
+      paidAt: new Date(today.getTime() - (10 - i) * 30 * 86400000),
+    });
+  }
+
+  // ===== Estimates =====
+  let estimateCounter = 0;
+  const estDef = {
+    productId: products[0].id,
+    productName: products[0].name,
+    metal: products[0].metal,
+    purity: products[0].purity,
+    weightGrams: 22,
+    ratePerGram: 7100,
+    makingChargePercent: 12,
+    stoneCharges: 0,
+    gstRate: 3,
+  };
+  const estBase = estDef.weightGrams * estDef.ratePerGram;
+  const estMaking = estBase * (estDef.makingChargePercent / 100);
+  const estTaxable = estBase + estMaking;
+  const estGst = estTaxable * (estDef.gstRate / 100);
+  const [estimate] = await db
+    .insert(estimatesTable)
+    .values({
+      estimateNumber: nextSerial("EST", estimateCounter++),
+      customerId: customers[5].id,
+      date: new Date(today.getTime() - 2 * 86400000),
+      validUntil: new Date(today.getTime() + 5 * 86400000),
+      subtotal: estTaxable.toFixed(2),
+      gstAmount: estGst.toFixed(2),
+      discount: "0",
+      total: (estTaxable + estGst).toFixed(2),
+      status: "sent",
+      notes: "Sent over WhatsApp; awaiting customer confirmation.",
+    })
+    .returning();
+  await db.insert(estimateItemsTable).values({
+    estimateId: estimate.id,
+    productId: estDef.productId,
+    productName: estDef.productName,
+    metal: estDef.metal,
+    purity: estDef.purity,
+    weightGrams: estDef.weightGrams.toFixed(3),
+    ratePerGram: estDef.ratePerGram.toFixed(2),
+    makingChargePercent: estDef.makingChargePercent.toFixed(2),
+    stoneCharges: estDef.stoneCharges.toFixed(2),
+    gstRate: estDef.gstRate.toFixed(2),
+    amount: (estTaxable + estGst).toFixed(2),
+  });
+
   console.log("Seeded:", {
     customers: customers.length,
     products: products.length,
     invoices: invoiceDefs.length,
     girvi: girviDefs.length,
+    karigars: karigars.length,
+    plans: plans.length,
+    schemeAccounts: schemeAccs.length,
   });
   void sql;
 }

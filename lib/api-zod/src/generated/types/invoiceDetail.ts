@@ -7,8 +7,10 @@
  */
 import type { Invoice } from "./invoice";
 import type { InvoiceItem } from "./invoiceItem";
+import type { OldGoldItem } from "./oldGoldItem";
 
 export type InvoiceDetail = Invoice & {
   items: InvoiceItem[];
+  oldGoldItems: OldGoldItem[];
   notes?: string | null;
 };

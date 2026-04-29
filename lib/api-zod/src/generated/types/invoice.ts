@@ -18,8 +18,10 @@ export interface Invoice {
   subtotal: number;
   gstAmount: number;
   discount: number;
+  oldGoldValue: number;
   total: number;
   paidAmount: number;
   balance: number;
   status: InvoiceStatus;
+  paymentMode: string;
 }

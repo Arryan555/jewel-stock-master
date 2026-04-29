@@ -12,8 +12,13 @@ tags:
   - name: customers
   - name: products
   - name: invoices
+  - name: estimates
   - name: girvi
   - name: ledger
+  - name: karigar
+  - name: repairs
+  - name: schemes
+  - name: settings
   - name: reports
 paths:
   /healthz:
@@ -445,6 +450,433 @@ paths:
                 type: array
                 items: { $ref: "#/components/schemas/CustomerBalance" }
 
+  /estimates:
+    get:
+      operationId: listEstimates
+      tags: [estimates]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Estimate" }
+    post:
+      operationId: createEstimate
+      tags: [estimates]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/EstimateInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EstimateDetail" }
+  /estimates/{id}:
+    get:
+      operationId: getEstimate
+      tags: [estimates]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/EstimateDetail" }
+    delete:
+      operationId: deleteEstimate
+      tags: [estimates]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ok" }
+  /estimates/{id}/convert:
+    post:
+      operationId: convertEstimate
+      tags: [estimates]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/InvoiceDetail" }
+
+  /karigars:
+    get:
+      operationId: listKarigars
+      tags: [karigar]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Karigar" }
+    post:
+      operationId: createKarigar
+      tags: [karigar]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/KarigarInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Karigar" }
+  /karigars/{id}:
+    put:
+      operationId: updateKarigar
+      tags: [karigar]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/KarigarInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Karigar" }
+    delete:
+      operationId: deleteKarigar
+      tags: [karigar]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ok" }
+  /karigar-jobs:
+    get:
+      operationId: listKarigarJobs
+      tags: [karigar]
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [issued, received, all] }
+        - in: query
+          name: karigarId
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/KarigarJob" }
+    post:
+      operationId: createKarigarJob
+      tags: [karigar]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/KarigarJobInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KarigarJob" }
+  /karigar-jobs/{id}/receive:
+    post:
+      operationId: receiveKarigarJob
+      tags: [karigar]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/KarigarReceiveInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KarigarJob" }
+  /karigar-jobs/{id}:
+    delete:
+      operationId: deleteKarigarJob
+      tags: [karigar]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ok" }
+
+  /repairs:
+    get:
+      operationId: listRepairs
+      tags: [repairs]
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [received, in_progress, ready, delivered, all] }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/RepairJob" }
+    post:
+      operationId: createRepair
+      tags: [repairs]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RepairInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RepairJob" }
+  /repairs/{id}:
+    put:
+      operationId: updateRepair
+      tags: [repairs]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RepairUpdateInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RepairJob" }
+    delete:
+      operationId: deleteRepair
+      tags: [repairs]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ok" }
+
+  /scheme-plans:
+    get:
+      operationId: listSchemePlans
+      tags: [schemes]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/SchemePlan" }
+    post:
+      operationId: createSchemePlan
+      tags: [schemes]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SchemePlanInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SchemePlan" }
+  /scheme-plans/{id}:
+    delete:
+      operationId: deleteSchemePlan
+      tags: [schemes]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Ok" }
+  /scheme-accounts:
+    get:
+      operationId: listSchemeAccounts
+      tags: [schemes]
+      parameters:
+        - in: query
+          name: status
+          schema: { type: string, enum: [active, redeemed, all] }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/SchemeAccount" }
+    post:
+      operationId: createSchemeAccount
+      tags: [schemes]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SchemeAccountInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SchemeAccountDetail" }
+  /scheme-accounts/{id}:
+    get:
+      operationId: getSchemeAccount
+      tags: [schemes]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SchemeAccountDetail" }
+  /scheme-accounts/{id}/installment:
+    post:
+      operationId: paySchemeInstallment
+      tags: [schemes]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/SchemeInstallmentInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SchemeAccountDetail" }
+  /scheme-accounts/{id}/redeem:
+    post:
+      operationId: redeemSchemeAccount
+      tags: [schemes]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SchemeAccountDetail" }
+
+  /settings:
+    get:
+      operationId: getShopSettings
+      tags: [settings]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ShopSettings" }
+    put:
+      operationId: updateShopSettings
+      tags: [settings]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ShopSettingsInput" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ShopSettings" }
+
+  /reports/daybook:
+    get:
+      operationId: getDaybook
+      tags: [reports]
+      parameters:
+        - in: query
+          name: date
+          schema: { type: string, format: date }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/DaybookReport" }
+
   /reports/dashboard:
     get:
       operationId: getDashboardSummary
@@ -643,23 +1075,49 @@ components:
         productName: { type: string }
         metal: { type: string }
         purity: { type: string }
+        grossWeight: { type: number }
+        lessWeight: { type: number }
         weightGrams: { type: number }
+        wastagePercent: { type: number }
         ratePerGram: { type: number }
         makingChargePercent: { type: number }
         stoneCharges: { type: number }
         gstRate: { type: number }
         amount: { type: number }
-      required: [productId, productName, metal, purity, weightGrams, ratePerGram, makingChargePercent, stoneCharges, gstRate, amount]
+      required: [productId, productName, metal, purity, grossWeight, lessWeight, weightGrams, wastagePercent, ratePerGram, makingChargePercent, stoneCharges, gstRate, amount]
     InvoiceItemInput:
       type: object
       properties:
         productId: { type: string }
+        grossWeight: { type: number }
+        lessWeight: { type: number }
         weightGrams: { type: number }
+        wastagePercent: { type: number }
         ratePerGram: { type: number }
         makingChargePercent: { type: number }
         stoneCharges: { type: number }
         gstRate: { type: number }
       required: [productId, weightGrams, ratePerGram, makingChargePercent, stoneCharges, gstRate]
+    OldGoldItem:
+      type: object
+      properties:
+        description: { type: string }
+        metal: { type: string, enum: [gold, silver] }
+        grossWeight: { type: number }
+        purityPercent: { type: number }
+        fineWeight: { type: number }
+        ratePerGram: { type: number }
+        value: { type: number }
+      required: [description, metal, grossWeight, purityPercent, fineWeight, ratePerGram, value]
+    OldGoldItemInput:
+      type: object
+      properties:
+        description: { type: string, minLength: 1 }
+        metal: { type: string, enum: [gold, silver] }
+        grossWeight: { type: number }
+        purityPercent: { type: number }
+        ratePerGram: { type: number }
+      required: [description, metal, grossWeight, purityPercent, ratePerGram]
     Invoice:
       type: object
       properties:
@@ -672,12 +1130,14 @@ components:
         subtotal: { type: number }
         gstAmount: { type: number }
         discount: { type: number }
+        oldGoldValue: { type: number }
         total: { type: number }
         paidAmount: { type: number }
         balance: { type: number }
         status: { type: string, enum: [paid, partial, unpaid] }
+        paymentMode: { type: string }
       required:
-        [id, invoiceNumber, type, customerId, customerName, date, subtotal, gstAmount, discount, total, paidAmount, balance, status]
+        [id, invoiceNumber, type, customerId, customerName, date, subtotal, gstAmount, discount, oldGoldValue, total, paidAmount, balance, status, paymentMode]
     InvoiceDetail:
       allOf:
         - $ref: "#/components/schemas/Invoice"
@@ -686,8 +1146,11 @@ components:
             items:
               type: array
               items: { $ref: "#/components/schemas/InvoiceItem" }
+            oldGoldItems:
+              type: array
+              items: { $ref: "#/components/schemas/OldGoldItem" }
             notes: { type: string, nullable: true }
-          required: [items]
+          required: [items, oldGoldItems]
     InvoiceInput:
       type: object
       properties:
@@ -696,10 +1159,14 @@ components:
         date: { type: string, format: date-time }
         discount: { type: number }
         notes: { type: string, nullable: true }
+        paymentMode: { type: string }
         items:
           type: array
           items: { $ref: "#/components/schemas/InvoiceItemInput" }
           minItems: 1
+        oldGoldItems:
+          type: array
+          items: { $ref: "#/components/schemas/OldGoldItemInput" }
         paidAmount: { type: number }
       required: [type, customerId, date, discount, items, paidAmount]
     PaymentInput:
@@ -905,3 +1372,290 @@ components:
         ratePerGram: { type: number }
         updatedAt: { type: string, format: date-time }
       required: [metal, purity, ratePerGram, updatedAt]
+
+    Estimate:
+      type: object
+      properties:
+        id: { type: string }
+        estimateNumber: { type: string }
+        customerId: { type: string }
+        customerName: { type: string }
+        date: { type: string, format: date-time }
+        validUntil: { type: string, format: date-time, nullable: true }
+        subtotal: { type: number }
+        gstAmount: { type: number }
+        discount: { type: number }
+        total: { type: number }
+        status: { type: string, enum: [draft, sent, accepted, converted, expired] }
+        convertedInvoiceId: { type: string, nullable: true }
+      required: [id, estimateNumber, customerId, customerName, date, subtotal, gstAmount, discount, total, status]
+    EstimateDetail:
+      allOf:
+        - $ref: "#/components/schemas/Estimate"
+        - type: object
+          properties:
+            items:
+              type: array
+              items: { $ref: "#/components/schemas/InvoiceItem" }
+            notes: { type: string, nullable: true }
+          required: [items]
+    EstimateInput:
+      type: object
+      properties:
+        customerId: { type: string }
+        date: { type: string, format: date-time }
+        validUntil: { type: string, format: date-time, nullable: true }
+        discount: { type: number }
+        notes: { type: string, nullable: true }
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/InvoiceItemInput" }
+          minItems: 1
+      required: [customerId, date, discount, items]
+
+    Karigar:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        phone: { type: string }
+        speciality: { type: string, nullable: true }
+        address: { type: string, nullable: true }
+        notes: { type: string, nullable: true }
+        activeJobs: { type: integer }
+        totalJobs: { type: integer }
+        createdAt: { type: string, format: date-time }
+      required: [id, name, phone, activeJobs, totalJobs, createdAt]
+    KarigarInput:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        phone: { type: string, minLength: 1 }
+        speciality: { type: string, nullable: true }
+        address: { type: string, nullable: true }
+        notes: { type: string, nullable: true }
+      required: [name, phone]
+    KarigarJob:
+      type: object
+      properties:
+        id: { type: string }
+        jobNumber: { type: string }
+        karigarId: { type: string }
+        karigarName: { type: string }
+        itemDescription: { type: string }
+        metal: { type: string }
+        purity: { type: string }
+        issuedWeight: { type: number }
+        receivedWeight: { type: number, nullable: true }
+        wastageWeight: { type: number, nullable: true }
+        expectedWastagePct: { type: number }
+        actualWastagePct: { type: number, nullable: true }
+        laborCharge: { type: number }
+        issuedDate: { type: string, format: date-time }
+        expectedDate: { type: string, format: date-time, nullable: true }
+        receivedDate: { type: string, format: date-time, nullable: true }
+        status: { type: string, enum: [issued, received] }
+        notes: { type: string, nullable: true }
+      required: [id, jobNumber, karigarId, karigarName, itemDescription, metal, purity, issuedWeight, expectedWastagePct, laborCharge, issuedDate, status]
+    KarigarJobInput:
+      type: object
+      properties:
+        karigarId: { type: string }
+        itemDescription: { type: string, minLength: 1 }
+        metal: { type: string, enum: [gold, silver, platinum] }
+        purity: { type: string, minLength: 1 }
+        issuedWeight: { type: number }
+        expectedWastagePct: { type: number }
+        laborCharge: { type: number }
+        issuedDate: { type: string, format: date-time }
+        expectedDate: { type: string, format: date-time, nullable: true }
+        notes: { type: string, nullable: true }
+      required: [karigarId, itemDescription, metal, purity, issuedWeight, expectedWastagePct, laborCharge, issuedDate]
+    KarigarReceiveInput:
+      type: object
+      properties:
+        receivedWeight: { type: number }
+        receivedDate: { type: string, format: date-time }
+        notes: { type: string, nullable: true }
+      required: [receivedWeight, receivedDate]
+
+    RepairJob:
+      type: object
+      properties:
+        id: { type: string }
+        ticketNumber: { type: string }
+        customerId: { type: string }
+        customerName: { type: string }
+        itemDescription: { type: string }
+        metal: { type: string }
+        purity: { type: string, nullable: true }
+        weightGrams: { type: number }
+        issue: { type: string }
+        estimatedCost: { type: number }
+        finalCost: { type: number, nullable: true }
+        receivedDate: { type: string, format: date-time }
+        promisedDate: { type: string, format: date-time, nullable: true }
+        deliveredDate: { type: string, format: date-time, nullable: true }
+        status: { type: string, enum: [received, in_progress, ready, delivered] }
+        paidAmount: { type: number }
+        notes: { type: string, nullable: true }
+      required: [id, ticketNumber, customerId, customerName, itemDescription, metal, weightGrams, issue, estimatedCost, receivedDate, status, paidAmount]
+    RepairInput:
+      type: object
+      properties:
+        customerId: { type: string }
+        itemDescription: { type: string, minLength: 1 }
+        metal: { type: string, enum: [gold, silver, platinum, diamond] }
+        purity: { type: string, nullable: true }
+        weightGrams: { type: number }
+        issue: { type: string, minLength: 1 }
+        estimatedCost: { type: number }
+        receivedDate: { type: string, format: date-time }
+        promisedDate: { type: string, format: date-time, nullable: true }
+        notes: { type: string, nullable: true }
+      required: [customerId, itemDescription, metal, weightGrams, issue, estimatedCost, receivedDate]
+    RepairUpdateInput:
+      type: object
+      properties:
+        status: { type: string, enum: [received, in_progress, ready, delivered] }
+        finalCost: { type: number, nullable: true }
+        paidAmount: { type: number, nullable: true }
+        deliveredDate: { type: string, format: date-time, nullable: true }
+        notes: { type: string, nullable: true }
+      required: [status]
+
+    SchemePlan:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        monthlyAmount: { type: number }
+        durationMonths: { type: integer }
+        bonusMonths: { type: integer }
+        description: { type: string, nullable: true }
+        active: { type: boolean }
+        accountCount: { type: integer }
+        createdAt: { type: string, format: date-time }
+      required: [id, name, monthlyAmount, durationMonths, bonusMonths, active, accountCount, createdAt]
+    SchemePlanInput:
+      type: object
+      properties:
+        name: { type: string, minLength: 1 }
+        monthlyAmount: { type: number }
+        durationMonths: { type: integer }
+        bonusMonths: { type: integer }
+        description: { type: string, nullable: true }
+        active: { type: boolean }
+      required: [name, monthlyAmount, durationMonths, bonusMonths, active]
+    SchemeAccount:
+      type: object
+      properties:
+        id: { type: string }
+        accountNumber: { type: string }
+        planId: { type: string }
+        planName: { type: string }
+        customerId: { type: string }
+        customerName: { type: string }
+        startDate: { type: string, format: date-time }
+        maturityDate: { type: string, format: date-time, nullable: true }
+        status: { type: string, enum: [active, redeemed] }
+        installmentsPaid: { type: integer }
+        totalInstallments: { type: integer }
+        accumulatedAmount: { type: number }
+        bonusAmount: { type: number }
+        redeemableAmount: { type: number }
+      required: [id, accountNumber, planId, planName, customerId, customerName, startDate, status, installmentsPaid, totalInstallments, accumulatedAmount, bonusAmount, redeemableAmount]
+    SchemeAccountDetail:
+      allOf:
+        - $ref: "#/components/schemas/SchemeAccount"
+        - type: object
+          properties:
+            installments:
+              type: array
+              items: { $ref: "#/components/schemas/SchemeInstallment" }
+          required: [installments]
+    SchemeAccountInput:
+      type: object
+      properties:
+        planId: { type: string }
+        customerId: { type: string }
+        startDate: { type: string, format: date-time }
+        notes: { type: string, nullable: true }
+      required: [planId, customerId, startDate]
+    SchemeInstallment:
+      type: object
+      properties:
+        id: { type: string }
+        installmentNumber: { type: integer }
+        paidAmount: { type: number }
+        paidAt: { type: string, format: date-time }
+        note: { type: string, nullable: true }
+      required: [id, installmentNumber, paidAmount, paidAt]
+    SchemeInstallmentInput:
+      type: object
+      properties:
+        paidAmount: { type: number }
+        note: { type: string, nullable: true }
+      required: [paidAmount]
+
+    ShopSettings:
+      type: object
+      properties:
+        shopName: { type: string }
+        tagline: { type: string, nullable: true }
+        address: { type: string, nullable: true }
+        city: { type: string, nullable: true }
+        phone: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        gstin: { type: string, nullable: true }
+        pan: { type: string, nullable: true }
+        upiId: { type: string, nullable: true }
+        bankName: { type: string, nullable: true }
+        bankAccount: { type: string, nullable: true }
+        bankIfsc: { type: string, nullable: true }
+        invoiceTerms: { type: string, nullable: true }
+        updatedAt: { type: string, format: date-time }
+      required: [shopName, updatedAt]
+    ShopSettingsInput:
+      type: object
+      properties:
+        shopName: { type: string, minLength: 1 }
+        tagline: { type: string, nullable: true }
+        address: { type: string, nullable: true }
+        city: { type: string, nullable: true }
+        phone: { type: string, nullable: true }
+        email: { type: string, nullable: true }
+        gstin: { type: string, nullable: true }
+        pan: { type: string, nullable: true }
+        upiId: { type: string, nullable: true }
+        bankName: { type: string, nullable: true }
+        bankAccount: { type: string, nullable: true }
+        bankIfsc: { type: string, nullable: true }
+        invoiceTerms: { type: string, nullable: true }
+      required: [shopName]
+
+    DaybookEntry:
+      type: object
+      properties:
+        time: { type: string, format: date-time }
+        kind: { type: string, enum: [sale, payment_in, payment_out, girvi_loan, girvi_payment, repair_collected, scheme_installment] }
+        reference: { type: string }
+        party: { type: string }
+        amount: { type: number }
+        mode: { type: string }
+      required: [time, kind, reference, party, amount, mode]
+    DaybookReport:
+      type: object
+      properties:
+        date: { type: string, format: date }
+        openingCash: { type: number }
+        cashIn: { type: number }
+        cashOut: { type: number }
+        upiIn: { type: number }
+        cardIn: { type: number }
+        bankIn: { type: number }
+        netSales: { type: number }
+        entries:
+          type: array
+          items: { $ref: "#/components/schemas/DaybookEntry" }
+      required: [date, openingCash, cashIn, cashOut, upiIn, cardIn, bankIn, netSales, entries]

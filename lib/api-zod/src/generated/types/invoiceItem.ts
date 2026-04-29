@@ -11,7 +11,10 @@ export interface InvoiceItem {
   productName: string;
   metal: string;
   purity: string;
+  grossWeight: number;
+  lessWeight: number;
   weightGrams: number;
+  wastagePercent: number;
   ratePerGram: number;
   makingChargePercent: number;
   stoneCharges: number;

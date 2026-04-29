@@ -121,7 +121,10 @@ export interface InvoiceItem {
   productName: string;
   metal: string;
   purity: string;
+  grossWeight: number;
+  lessWeight: number;
   weightGrams: number;
+  wastagePercent: number;
   ratePerGram: number;
   makingChargePercent: number;
   stoneCharges: number;
@@ -131,11 +134,49 @@ export interface InvoiceItem {
 
 export interface InvoiceItemInput {
   productId: string;
+  grossWeight?: number;
+  lessWeight?: number;
   weightGrams: number;
+  wastagePercent?: number;
   ratePerGram: number;
   makingChargePercent: number;
   stoneCharges: number;
   gstRate: number;
+}
+
+export type OldGoldItemMetal =
+  (typeof OldGoldItemMetal)[keyof typeof OldGoldItemMetal];
+
+export const OldGoldItemMetal = {
+  gold: "gold",
+  silver: "silver",
+} as const;
+
+export interface OldGoldItem {
+  description: string;
+  metal: OldGoldItemMetal;
+  grossWeight: number;
+  purityPercent: number;
+  fineWeight: number;
+  ratePerGram: number;
+  value: number;
+}
+
+export type OldGoldItemInputMetal =
+  (typeof OldGoldItemInputMetal)[keyof typeof OldGoldItemInputMetal];
+
+export const OldGoldItemInputMetal = {
+  gold: "gold",
+  silver: "silver",
+} as const;
+
+export interface OldGoldItemInput {
+  /** @minLength 1 */
+  description: string;
+  metal: OldGoldItemInputMetal;
+  grossWeight: number;
+  purityPercent: number;
+  ratePerGram: number;
 }
 
 export type InvoiceType = (typeof InvoiceType)[keyof typeof InvoiceType];
@@ -163,14 +204,17 @@ export interface Invoice {
   subtotal: number;
   gstAmount: number;
   discount: number;
+  oldGoldValue: number;
   total: number;
   paidAmount: number;
   balance: number;
   status: InvoiceStatus;
+  paymentMode: string;
 }
 
 export type InvoiceDetail = Invoice & {
   items: InvoiceItem[];
+  oldGoldItems: OldGoldItem[];
   notes?: string | null;
 };
 
@@ -188,8 +232,10 @@ export interface InvoiceInput {
   date: string;
   discount: number;
   notes?: string | null;
+  paymentMode?: string;
   /** @minItems 1 */
   items: InvoiceItemInput[];
+  oldGoldItems?: OldGoldItemInput[];
   paidAmount: number;
 }
 
@@ -443,6 +489,340 @@ export interface MetalRate {
   updatedAt: string;
 }
 
+export type EstimateStatus =
+  (typeof EstimateStatus)[keyof typeof EstimateStatus];
+
+export const EstimateStatus = {
+  draft: "draft",
+  sent: "sent",
+  accepted: "accepted",
+  converted: "converted",
+  expired: "expired",
+} as const;
+
+export interface Estimate {
+  id: string;
+  estimateNumber: string;
+  customerId: string;
+  customerName: string;
+  date: string;
+  validUntil?: string | null;
+  subtotal: number;
+  gstAmount: number;
+  discount: number;
+  total: number;
+  status: EstimateStatus;
+  convertedInvoiceId?: string | null;
+}
+
+export type EstimateDetail = Estimate & {
+  items: InvoiceItem[];
+  notes?: string | null;
+};
+
+export interface EstimateInput {
+  customerId: string;
+  date: string;
+  validUntil?: string | null;
+  discount: number;
+  notes?: string | null;
+  /** @minItems 1 */
+  items: InvoiceItemInput[];
+}
+
+export interface Karigar {
+  id: string;
+  name: string;
+  phone: string;
+  speciality?: string | null;
+  address?: string | null;
+  notes?: string | null;
+  activeJobs: number;
+  totalJobs: number;
+  createdAt: string;
+}
+
+export interface KarigarInput {
+  /** @minLength 1 */
+  name: string;
+  /** @minLength 1 */
+  phone: string;
+  speciality?: string | null;
+  address?: string | null;
+  notes?: string | null;
+}
+
+export type KarigarJobStatus =
+  (typeof KarigarJobStatus)[keyof typeof KarigarJobStatus];
+
+export const KarigarJobStatus = {
+  issued: "issued",
+  received: "received",
+} as const;
+
+export interface KarigarJob {
+  id: string;
+  jobNumber: string;
+  karigarId: string;
+  karigarName: string;
+  itemDescription: string;
+  metal: string;
+  purity: string;
+  issuedWeight: number;
+  receivedWeight?: number | null;
+  wastageWeight?: number | null;
+  expectedWastagePct: number;
+  actualWastagePct?: number | null;
+  laborCharge: number;
+  issuedDate: string;
+  expectedDate?: string | null;
+  receivedDate?: string | null;
+  status: KarigarJobStatus;
+  notes?: string | null;
+}
+
+export type KarigarJobInputMetal =
+  (typeof KarigarJobInputMetal)[keyof typeof KarigarJobInputMetal];
+
+export const KarigarJobInputMetal = {
+  gold: "gold",
+  silver: "silver",
+  platinum: "platinum",
+} as const;
+
+export interface KarigarJobInput {
+  karigarId: string;
+  /** @minLength 1 */
+  itemDescription: string;
+  metal: KarigarJobInputMetal;
+  /** @minLength 1 */
+  purity: string;
+  issuedWeight: number;
+  expectedWastagePct: number;
+  laborCharge: number;
+  issuedDate: string;
+  expectedDate?: string | null;
+  notes?: string | null;
+}
+
+export interface KarigarReceiveInput {
+  receivedWeight: number;
+  receivedDate: string;
+  notes?: string | null;
+}
+
+export type RepairJobStatus =
+  (typeof RepairJobStatus)[keyof typeof RepairJobStatus];
+
+export const RepairJobStatus = {
+  received: "received",
+  in_progress: "in_progress",
+  ready: "ready",
+  delivered: "delivered",
+} as const;
+
+export interface RepairJob {
+  id: string;
+  ticketNumber: string;
+  customerId: string;
+  customerName: string;
+  itemDescription: string;
+  metal: string;
+  purity?: string | null;
+  weightGrams: number;
+  issue: string;
+  estimatedCost: number;
+  finalCost?: number | null;
+  receivedDate: string;
+  promisedDate?: string | null;
+  deliveredDate?: string | null;
+  status: RepairJobStatus;
+  paidAmount: number;
+  notes?: string | null;
+}
+
+export type RepairInputMetal =
+  (typeof RepairInputMetal)[keyof typeof RepairInputMetal];
+
+export const RepairInputMetal = {
+  gold: "gold",
+  silver: "silver",
+  platinum: "platinum",
+  diamond: "diamond",
+} as const;
+
+export interface RepairInput {
+  customerId: string;
+  /** @minLength 1 */
+  itemDescription: string;
+  metal: RepairInputMetal;
+  purity?: string | null;
+  weightGrams: number;
+  /** @minLength 1 */
+  issue: string;
+  estimatedCost: number;
+  receivedDate: string;
+  promisedDate?: string | null;
+  notes?: string | null;
+}
+
+export type RepairUpdateInputStatus =
+  (typeof RepairUpdateInputStatus)[keyof typeof RepairUpdateInputStatus];
+
+export const RepairUpdateInputStatus = {
+  received: "received",
+  in_progress: "in_progress",
+  ready: "ready",
+  delivered: "delivered",
+} as const;
+
+export interface RepairUpdateInput {
+  status: RepairUpdateInputStatus;
+  finalCost?: number | null;
+  paidAmount?: number | null;
+  deliveredDate?: string | null;
+  notes?: string | null;
+}
+
+export interface SchemePlan {
+  id: string;
+  name: string;
+  monthlyAmount: number;
+  durationMonths: number;
+  bonusMonths: number;
+  description?: string | null;
+  active: boolean;
+  accountCount: number;
+  createdAt: string;
+}
+
+export interface SchemePlanInput {
+  /** @minLength 1 */
+  name: string;
+  monthlyAmount: number;
+  durationMonths: number;
+  bonusMonths: number;
+  description?: string | null;
+  active: boolean;
+}
+
+export type SchemeAccountStatus =
+  (typeof SchemeAccountStatus)[keyof typeof SchemeAccountStatus];
+
+export const SchemeAccountStatus = {
+  active: "active",
+  redeemed: "redeemed",
+} as const;
+
+export interface SchemeAccount {
+  id: string;
+  accountNumber: string;
+  planId: string;
+  planName: string;
+  customerId: string;
+  customerName: string;
+  startDate: string;
+  maturityDate?: string | null;
+  status: SchemeAccountStatus;
+  installmentsPaid: number;
+  totalInstallments: number;
+  accumulatedAmount: number;
+  bonusAmount: number;
+  redeemableAmount: number;
+}
+
+export interface SchemeInstallment {
+  id: string;
+  installmentNumber: number;
+  paidAmount: number;
+  paidAt: string;
+  note?: string | null;
+}
+
+export type SchemeAccountDetail = SchemeAccount & {
+  installments: SchemeInstallment[];
+};
+
+export interface SchemeAccountInput {
+  planId: string;
+  customerId: string;
+  startDate: string;
+  notes?: string | null;
+}
+
+export interface SchemeInstallmentInput {
+  paidAmount: number;
+  note?: string | null;
+}
+
+export interface ShopSettings {
+  shopName: string;
+  tagline?: string | null;
+  address?: string | null;
+  city?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  gstin?: string | null;
+  pan?: string | null;
+  upiId?: string | null;
+  bankName?: string | null;
+  bankAccount?: string | null;
+  bankIfsc?: string | null;
+  invoiceTerms?: string | null;
+  updatedAt: string;
+}
+
+export interface ShopSettingsInput {
+  /** @minLength 1 */
+  shopName: string;
+  tagline?: string | null;
+  address?: string | null;
+  city?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  gstin?: string | null;
+  pan?: string | null;
+  upiId?: string | null;
+  bankName?: string | null;
+  bankAccount?: string | null;
+  bankIfsc?: string | null;
+  invoiceTerms?: string | null;
+}
+
+export type DaybookEntryKind =
+  (typeof DaybookEntryKind)[keyof typeof DaybookEntryKind];
+
+export const DaybookEntryKind = {
+  sale: "sale",
+  payment_in: "payment_in",
+  payment_out: "payment_out",
+  girvi_loan: "girvi_loan",
+  girvi_payment: "girvi_payment",
+  repair_collected: "repair_collected",
+  scheme_installment: "scheme_installment",
+} as const;
+
+export interface DaybookEntry {
+  time: string;
+  kind: DaybookEntryKind;
+  reference: string;
+  party: string;
+  amount: number;
+  mode: string;
+}
+
+export interface DaybookReport {
+  date: string;
+  openingCash: number;
+  cashIn: number;
+  cashOut: number;
+  upiIn: number;
+  cardIn: number;
+  bankIn: number;
+  netSales: number;
+  entries: DaybookEntry[];
+}
+
 export type ListCustomersParams = {
   type?: ListCustomersType;
   search?: string;
@@ -505,6 +885,52 @@ export const ListGirviLoansStatus = {
 
 export type ListLedgerEntriesParams = {
   customerId?: string;
+};
+
+export type ListKarigarJobsParams = {
+  status?: ListKarigarJobsStatus;
+  karigarId?: string;
+};
+
+export type ListKarigarJobsStatus =
+  (typeof ListKarigarJobsStatus)[keyof typeof ListKarigarJobsStatus];
+
+export const ListKarigarJobsStatus = {
+  issued: "issued",
+  received: "received",
+  all: "all",
+} as const;
+
+export type ListRepairsParams = {
+  status?: ListRepairsStatus;
+};
+
+export type ListRepairsStatus =
+  (typeof ListRepairsStatus)[keyof typeof ListRepairsStatus];
+
+export const ListRepairsStatus = {
+  received: "received",
+  in_progress: "in_progress",
+  ready: "ready",
+  delivered: "delivered",
+  all: "all",
+} as const;
+
+export type ListSchemeAccountsParams = {
+  status?: ListSchemeAccountsStatus;
+};
+
+export type ListSchemeAccountsStatus =
+  (typeof ListSchemeAccountsStatus)[keyof typeof ListSchemeAccountsStatus];
+
+export const ListSchemeAccountsStatus = {
+  active: "active",
+  redeemed: "redeemed",
+  all: "all",
+} as const;
+
+export type GetDaybookParams = {
+  date?: string;
 };
 
 export type GetGstReportParams = {

@@ -4,6 +4,7 @@ import {
   db,
   invoicesTable,
   invoiceItemsTable,
+  invoiceOldGoldTable,
   customersTable,
   productsTable,
 } from "@workspace/db";
@@ -45,10 +46,12 @@ function summarizeInvoice(
     subtotal: n(inv.subtotal),
     gstAmount: n(inv.gstAmount),
     discount: n(inv.discount),
+    oldGoldValue: n(inv.oldGoldValue),
     total,
     paidAmount: paid,
     balance: Math.max(0, total - paid),
     status: computeInvoiceStatus(total, paid),
+    paymentMode: inv.paymentMode,
   };
 }
 
@@ -100,6 +103,10 @@ async function loadInvoiceDetail(invoiceId: string) {
     .select()
     .from(invoiceItemsTable)
     .where(eq(invoiceItemsTable.invoiceId, invoiceId));
+  const oldGold = await db
+    .select()
+    .from(invoiceOldGoldTable)
+    .where(eq(invoiceOldGoldTable.invoiceId, invoiceId));
   return {
     ...summarizeInvoice(row.inv, row.customerName ?? "(deleted)"),
     notes: row.inv.notes,
@@ -108,12 +115,24 @@ async function loadInvoiceDetail(invoiceId: string) {
       productName: i.productName,
       metal: i.metal,
       purity: i.purity,
+      grossWeight: n(i.grossWeight),
+      lessWeight: n(i.lessWeight),
       weightGrams: n(i.weightGrams),
+      wastagePercent: n(i.wastagePercent),
       ratePerGram: n(i.ratePerGram),
       makingChargePercent: n(i.makingChargePercent),
       stoneCharges: n(i.stoneCharges),
       gstRate: n(i.gstRate),
       amount: n(i.amount),
+    })),
+    oldGoldItems: oldGold.map((o) => ({
+      description: o.description,
+      metal: o.metal as "gold" | "silver",
+      grossWeight: n(o.grossWeight),
+      purityPercent: n(o.purityPercent),
+      fineWeight: n(o.fineWeight),
+      ratePerGram: n(o.ratePerGram),
+      value: n(o.value),
     })),
   };
 }
@@ -138,6 +157,13 @@ router.post("/invoices", async (req, res): Promise<void> => {
 
   const totals = computeInvoiceTotals(d.items, d.discount);
 
+  // Old gold deduction
+  const oldGoldValue = (d.oldGoldItems ?? []).reduce((sum, og) => {
+    const fine = (og.grossWeight * og.purityPercent) / 100;
+    return sum + fine * og.ratePerGram;
+  }, 0);
+  const finalTotal = Math.max(0, totals.total - oldGoldValue);
+
   // Generate invoice number
   const [{ count }] = await db
     .select({ count: sql<number>`count(*)::int` })
@@ -155,8 +181,10 @@ router.post("/invoices", async (req, res): Promise<void> => {
       subtotal: String(totals.subtotal.toFixed(2)),
       gstAmount: String(totals.gstAmount.toFixed(2)),
       discount: String((d.discount ?? 0).toFixed(2)),
-      total: String(totals.total.toFixed(2)),
+      oldGoldValue: String(oldGoldValue.toFixed(2)),
+      total: String(finalTotal.toFixed(2)),
       paidAmount: String((d.paidAmount ?? 0).toFixed(2)),
+      paymentMode: d.paymentMode ?? "cash",
       notes: d.notes ?? null,
     })
     .returning();
@@ -172,13 +200,35 @@ router.post("/invoices", async (req, res): Promise<void> => {
           productName: product?.name ?? "(unknown)",
           metal: product?.metal ?? "gold",
           purity: product?.purity ?? "",
+          grossWeight: String(it.grossWeight ?? it.weightGrams),
+          lessWeight: String(it.lessWeight ?? 0),
           weightGrams: String(it.weightGrams),
+          wastagePercent: String(it.wastagePercent ?? 0),
           ratePerGram: String(it.ratePerGram),
           makingChargePercent: String(it.makingChargePercent),
           stoneCharges: String(it.stoneCharges),
           gstRate: String(it.gstRate),
           amount: String(c.amount.toFixed(2)),
           hsnCode: product?.hsnCode ?? "7113",
+        };
+      }),
+    );
+  }
+
+  if ((d.oldGoldItems ?? []).length > 0) {
+    await db.insert(invoiceOldGoldTable).values(
+      (d.oldGoldItems ?? []).map((og) => {
+        const fine = (og.grossWeight * og.purityPercent) / 100;
+        const value = fine * og.ratePerGram;
+        return {
+          invoiceId: inv.id,
+          description: og.description,
+          metal: og.metal,
+          grossWeight: String(og.grossWeight),
+          purityPercent: String(og.purityPercent),
+          fineWeight: String(fine.toFixed(3)),
+          ratePerGram: String(og.ratePerGram),
+          value: String(value.toFixed(2)),
         };
       }),
     );
@@ -221,6 +271,9 @@ router.delete("/invoices/:id", async (req, res): Promise<void> => {
   await db
     .delete(invoiceItemsTable)
     .where(eq(invoiceItemsTable.invoiceId, params.data.id));
+  await db
+    .delete(invoiceOldGoldTable)
+    .where(eq(invoiceOldGoldTable.invoiceId, params.data.id));
   await db.delete(invoicesTable).where(eq(invoicesTable.id, params.data.id));
   res.json(DeleteInvoiceResponse.parse({ ok: true }));
 });

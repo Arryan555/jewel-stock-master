@@ -8,7 +8,10 @@
 
 export interface InvoiceItemInput {
   productId: string;
+  grossWeight?: number;
+  lessWeight?: number;
   weightGrams: number;
+  wastagePercent?: number;
   ratePerGram: number;
   makingChargePercent: number;
   stoneCharges: number;

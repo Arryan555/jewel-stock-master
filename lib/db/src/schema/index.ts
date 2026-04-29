@@ -3,3 +3,8 @@ export * from "./products";
 export * from "./invoices";
 export * from "./girvi";
 export * from "./ledger";
+export * from "./karigar";
+export * from "./repairs";
+export * from "./estimates";
+export * from "./schemes";
+export * from "./settings";

@@ -256,10 +256,12 @@ export const ListInvoicesResponseItem = zod.object({
   subtotal: zod.number(),
   gstAmount: zod.number(),
   discount: zod.number(),
+  oldGoldValue: zod.number(),
   total: zod.number(),
   paidAmount: zod.number(),
   balance: zod.number(),
   status: zod.enum(["paid", "partial", "unpaid"]),
+  paymentMode: zod.string(),
 });
 export const ListInvoicesResponse = zod.array(ListInvoicesResponseItem);
 
@@ -269,11 +271,15 @@ export const CreateInvoiceBody = zod.object({
   date: zod.coerce.date(),
   discount: zod.number(),
   notes: zod.string().nullish(),
+  paymentMode: zod.string().optional(),
   items: zod
     .array(
       zod.object({
         productId: zod.string(),
+        grossWeight: zod.number().optional(),
+        lessWeight: zod.number().optional(),
         weightGrams: zod.number(),
+        wastagePercent: zod.number().optional(),
         ratePerGram: zod.number(),
         makingChargePercent: zod.number(),
         stoneCharges: zod.number(),
@@ -281,6 +287,17 @@ export const CreateInvoiceBody = zod.object({
       }),
     )
     .min(1),
+  oldGoldItems: zod
+    .array(
+      zod.object({
+        description: zod.string().min(1),
+        metal: zod.enum(["gold", "silver"]),
+        grossWeight: zod.number(),
+        purityPercent: zod.number(),
+        ratePerGram: zod.number(),
+      }),
+    )
+    .optional(),
   paidAmount: zod.number(),
 });
 
@@ -295,10 +312,12 @@ export const CreateInvoiceResponse = zod
     subtotal: zod.number(),
     gstAmount: zod.number(),
     discount: zod.number(),
+    oldGoldValue: zod.number(),
     total: zod.number(),
     paidAmount: zod.number(),
     balance: zod.number(),
     status: zod.enum(["paid", "partial", "unpaid"]),
+    paymentMode: zod.string(),
   })
   .and(
     zod.object({
@@ -308,12 +327,26 @@ export const CreateInvoiceResponse = zod
           productName: zod.string(),
           metal: zod.string(),
           purity: zod.string(),
+          grossWeight: zod.number(),
+          lessWeight: zod.number(),
           weightGrams: zod.number(),
+          wastagePercent: zod.number(),
           ratePerGram: zod.number(),
           makingChargePercent: zod.number(),
           stoneCharges: zod.number(),
           gstRate: zod.number(),
           amount: zod.number(),
+        }),
+      ),
+      oldGoldItems: zod.array(
+        zod.object({
+          description: zod.string(),
+          metal: zod.enum(["gold", "silver"]),
+          grossWeight: zod.number(),
+          purityPercent: zod.number(),
+          fineWeight: zod.number(),
+          ratePerGram: zod.number(),
+          value: zod.number(),
         }),
       ),
       notes: zod.string().nullish(),
@@ -335,10 +368,12 @@ export const GetInvoiceResponse = zod
     subtotal: zod.number(),
     gstAmount: zod.number(),
     discount: zod.number(),
+    oldGoldValue: zod.number(),
     total: zod.number(),
     paidAmount: zod.number(),
     balance: zod.number(),
     status: zod.enum(["paid", "partial", "unpaid"]),
+    paymentMode: zod.string(),
   })
   .and(
     zod.object({
@@ -348,12 +383,26 @@ export const GetInvoiceResponse = zod
           productName: zod.string(),
           metal: zod.string(),
           purity: zod.string(),
+          grossWeight: zod.number(),
+          lessWeight: zod.number(),
           weightGrams: zod.number(),
+          wastagePercent: zod.number(),
           ratePerGram: zod.number(),
           makingChargePercent: zod.number(),
           stoneCharges: zod.number(),
           gstRate: zod.number(),
           amount: zod.number(),
+        }),
+      ),
+      oldGoldItems: zod.array(
+        zod.object({
+          description: zod.string(),
+          metal: zod.enum(["gold", "silver"]),
+          grossWeight: zod.number(),
+          purityPercent: zod.number(),
+          fineWeight: zod.number(),
+          ratePerGram: zod.number(),
+          value: zod.number(),
         }),
       ),
       notes: zod.string().nullish(),
@@ -388,10 +437,12 @@ export const RecordInvoicePaymentResponse = zod
     subtotal: zod.number(),
     gstAmount: zod.number(),
     discount: zod.number(),
+    oldGoldValue: zod.number(),
     total: zod.number(),
     paidAmount: zod.number(),
     balance: zod.number(),
     status: zod.enum(["paid", "partial", "unpaid"]),
+    paymentMode: zod.string(),
   })
   .and(
     zod.object({
@@ -401,12 +452,26 @@ export const RecordInvoicePaymentResponse = zod
           productName: zod.string(),
           metal: zod.string(),
           purity: zod.string(),
+          grossWeight: zod.number(),
+          lessWeight: zod.number(),
           weightGrams: zod.number(),
+          wastagePercent: zod.number(),
           ratePerGram: zod.number(),
           makingChargePercent: zod.number(),
           stoneCharges: zod.number(),
           gstRate: zod.number(),
           amount: zod.number(),
+        }),
+      ),
+      oldGoldItems: zod.array(
+        zod.object({
+          description: zod.string(),
+          metal: zod.enum(["gold", "silver"]),
+          grossWeight: zod.number(),
+          purityPercent: zod.number(),
+          fineWeight: zod.number(),
+          ratePerGram: zod.number(),
+          value: zod.number(),
         }),
       ),
       notes: zod.string().nullish(),
@@ -660,6 +725,751 @@ export const GetLedgerBalancesResponseItem = zod.object({
 export const GetLedgerBalancesResponse = zod.array(
   GetLedgerBalancesResponseItem,
 );
+
+export const ListEstimatesResponseItem = zod.object({
+  id: zod.string(),
+  estimateNumber: zod.string(),
+  customerId: zod.string(),
+  customerName: zod.string(),
+  date: zod.coerce.date(),
+  validUntil: zod.coerce.date().nullish(),
+  subtotal: zod.number(),
+  gstAmount: zod.number(),
+  discount: zod.number(),
+  total: zod.number(),
+  status: zod.enum(["draft", "sent", "accepted", "converted", "expired"]),
+  convertedInvoiceId: zod.string().nullish(),
+});
+export const ListEstimatesResponse = zod.array(ListEstimatesResponseItem);
+
+export const CreateEstimateBody = zod.object({
+  customerId: zod.string(),
+  date: zod.coerce.date(),
+  validUntil: zod.coerce.date().nullish(),
+  discount: zod.number(),
+  notes: zod.string().nullish(),
+  items: zod
+    .array(
+      zod.object({
+        productId: zod.string(),
+        grossWeight: zod.number().optional(),
+        lessWeight: zod.number().optional(),
+        weightGrams: zod.number(),
+        wastagePercent: zod.number().optional(),
+        ratePerGram: zod.number(),
+        makingChargePercent: zod.number(),
+        stoneCharges: zod.number(),
+        gstRate: zod.number(),
+      }),
+    )
+    .min(1),
+});
+
+export const CreateEstimateResponse = zod
+  .object({
+    id: zod.string(),
+    estimateNumber: zod.string(),
+    customerId: zod.string(),
+    customerName: zod.string(),
+    date: zod.coerce.date(),
+    validUntil: zod.coerce.date().nullish(),
+    subtotal: zod.number(),
+    gstAmount: zod.number(),
+    discount: zod.number(),
+    total: zod.number(),
+    status: zod.enum(["draft", "sent", "accepted", "converted", "expired"]),
+    convertedInvoiceId: zod.string().nullish(),
+  })
+  .and(
+    zod.object({
+      items: zod.array(
+        zod.object({
+          productId: zod.string(),
+          productName: zod.string(),
+          metal: zod.string(),
+          purity: zod.string(),
+          grossWeight: zod.number(),
+          lessWeight: zod.number(),
+          weightGrams: zod.number(),
+          wastagePercent: zod.number(),
+          ratePerGram: zod.number(),
+          makingChargePercent: zod.number(),
+          stoneCharges: zod.number(),
+          gstRate: zod.number(),
+          amount: zod.number(),
+        }),
+      ),
+      notes: zod.string().nullish(),
+    }),
+  );
+
+export const GetEstimateParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetEstimateResponse = zod
+  .object({
+    id: zod.string(),
+    estimateNumber: zod.string(),
+    customerId: zod.string(),
+    customerName: zod.string(),
+    date: zod.coerce.date(),
+    validUntil: zod.coerce.date().nullish(),
+    subtotal: zod.number(),
+    gstAmount: zod.number(),
+    discount: zod.number(),
+    total: zod.number(),
+    status: zod.enum(["draft", "sent", "accepted", "converted", "expired"]),
+    convertedInvoiceId: zod.string().nullish(),
+  })
+  .and(
+    zod.object({
+      items: zod.array(
+        zod.object({
+          productId: zod.string(),
+          productName: zod.string(),
+          metal: zod.string(),
+          purity: zod.string(),
+          grossWeight: zod.number(),
+          lessWeight: zod.number(),
+          weightGrams: zod.number(),
+          wastagePercent: zod.number(),
+          ratePerGram: zod.number(),
+          makingChargePercent: zod.number(),
+          stoneCharges: zod.number(),
+          gstRate: zod.number(),
+          amount: zod.number(),
+        }),
+      ),
+      notes: zod.string().nullish(),
+    }),
+  );
+
+export const DeleteEstimateParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteEstimateResponse = zod.object({
+  ok: zod.boolean(),
+});
+
+export const ConvertEstimateParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const ConvertEstimateResponse = zod
+  .object({
+    id: zod.string(),
+    invoiceNumber: zod.string(),
+    type: zod.enum(["retail", "wholesale"]),
+    customerId: zod.string(),
+    customerName: zod.string(),
+    date: zod.coerce.date(),
+    subtotal: zod.number(),
+    gstAmount: zod.number(),
+    discount: zod.number(),
+    oldGoldValue: zod.number(),
+    total: zod.number(),
+    paidAmount: zod.number(),
+    balance: zod.number(),
+    status: zod.enum(["paid", "partial", "unpaid"]),
+    paymentMode: zod.string(),
+  })
+  .and(
+    zod.object({
+      items: zod.array(
+        zod.object({
+          productId: zod.string(),
+          productName: zod.string(),
+          metal: zod.string(),
+          purity: zod.string(),
+          grossWeight: zod.number(),
+          lessWeight: zod.number(),
+          weightGrams: zod.number(),
+          wastagePercent: zod.number(),
+          ratePerGram: zod.number(),
+          makingChargePercent: zod.number(),
+          stoneCharges: zod.number(),
+          gstRate: zod.number(),
+          amount: zod.number(),
+        }),
+      ),
+      oldGoldItems: zod.array(
+        zod.object({
+          description: zod.string(),
+          metal: zod.enum(["gold", "silver"]),
+          grossWeight: zod.number(),
+          purityPercent: zod.number(),
+          fineWeight: zod.number(),
+          ratePerGram: zod.number(),
+          value: zod.number(),
+        }),
+      ),
+      notes: zod.string().nullish(),
+    }),
+  );
+
+export const ListKarigarsResponseItem = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  phone: zod.string(),
+  speciality: zod.string().nullish(),
+  address: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  activeJobs: zod.number(),
+  totalJobs: zod.number(),
+  createdAt: zod.coerce.date(),
+});
+export const ListKarigarsResponse = zod.array(ListKarigarsResponseItem);
+
+export const CreateKarigarBody = zod.object({
+  name: zod.string().min(1),
+  phone: zod.string().min(1),
+  speciality: zod.string().nullish(),
+  address: zod.string().nullish(),
+  notes: zod.string().nullish(),
+});
+
+export const CreateKarigarResponse = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  phone: zod.string(),
+  speciality: zod.string().nullish(),
+  address: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  activeJobs: zod.number(),
+  totalJobs: zod.number(),
+  createdAt: zod.coerce.date(),
+});
+
+export const UpdateKarigarParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const UpdateKarigarBody = zod.object({
+  name: zod.string().min(1),
+  phone: zod.string().min(1),
+  speciality: zod.string().nullish(),
+  address: zod.string().nullish(),
+  notes: zod.string().nullish(),
+});
+
+export const UpdateKarigarResponse = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  phone: zod.string(),
+  speciality: zod.string().nullish(),
+  address: zod.string().nullish(),
+  notes: zod.string().nullish(),
+  activeJobs: zod.number(),
+  totalJobs: zod.number(),
+  createdAt: zod.coerce.date(),
+});
+
+export const DeleteKarigarParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteKarigarResponse = zod.object({
+  ok: zod.boolean(),
+});
+
+export const ListKarigarJobsQueryParams = zod.object({
+  status: zod.enum(["issued", "received", "all"]).optional(),
+  karigarId: zod.coerce.string().optional(),
+});
+
+export const ListKarigarJobsResponseItem = zod.object({
+  id: zod.string(),
+  jobNumber: zod.string(),
+  karigarId: zod.string(),
+  karigarName: zod.string(),
+  itemDescription: zod.string(),
+  metal: zod.string(),
+  purity: zod.string(),
+  issuedWeight: zod.number(),
+  receivedWeight: zod.number().nullish(),
+  wastageWeight: zod.number().nullish(),
+  expectedWastagePct: zod.number(),
+  actualWastagePct: zod.number().nullish(),
+  laborCharge: zod.number(),
+  issuedDate: zod.coerce.date(),
+  expectedDate: zod.coerce.date().nullish(),
+  receivedDate: zod.coerce.date().nullish(),
+  status: zod.enum(["issued", "received"]),
+  notes: zod.string().nullish(),
+});
+export const ListKarigarJobsResponse = zod.array(ListKarigarJobsResponseItem);
+
+export const CreateKarigarJobBody = zod.object({
+  karigarId: zod.string(),
+  itemDescription: zod.string().min(1),
+  metal: zod.enum(["gold", "silver", "platinum"]),
+  purity: zod.string().min(1),
+  issuedWeight: zod.number(),
+  expectedWastagePct: zod.number(),
+  laborCharge: zod.number(),
+  issuedDate: zod.coerce.date(),
+  expectedDate: zod.coerce.date().nullish(),
+  notes: zod.string().nullish(),
+});
+
+export const CreateKarigarJobResponse = zod.object({
+  id: zod.string(),
+  jobNumber: zod.string(),
+  karigarId: zod.string(),
+  karigarName: zod.string(),
+  itemDescription: zod.string(),
+  metal: zod.string(),
+  purity: zod.string(),
+  issuedWeight: zod.number(),
+  receivedWeight: zod.number().nullish(),
+  wastageWeight: zod.number().nullish(),
+  expectedWastagePct: zod.number(),
+  actualWastagePct: zod.number().nullish(),
+  laborCharge: zod.number(),
+  issuedDate: zod.coerce.date(),
+  expectedDate: zod.coerce.date().nullish(),
+  receivedDate: zod.coerce.date().nullish(),
+  status: zod.enum(["issued", "received"]),
+  notes: zod.string().nullish(),
+});
+
+export const ReceiveKarigarJobParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const ReceiveKarigarJobBody = zod.object({
+  receivedWeight: zod.number(),
+  receivedDate: zod.coerce.date(),
+  notes: zod.string().nullish(),
+});
+
+export const ReceiveKarigarJobResponse = zod.object({
+  id: zod.string(),
+  jobNumber: zod.string(),
+  karigarId: zod.string(),
+  karigarName: zod.string(),
+  itemDescription: zod.string(),
+  metal: zod.string(),
+  purity: zod.string(),
+  issuedWeight: zod.number(),
+  receivedWeight: zod.number().nullish(),
+  wastageWeight: zod.number().nullish(),
+  expectedWastagePct: zod.number(),
+  actualWastagePct: zod.number().nullish(),
+  laborCharge: zod.number(),
+  issuedDate: zod.coerce.date(),
+  expectedDate: zod.coerce.date().nullish(),
+  receivedDate: zod.coerce.date().nullish(),
+  status: zod.enum(["issued", "received"]),
+  notes: zod.string().nullish(),
+});
+
+export const DeleteKarigarJobParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteKarigarJobResponse = zod.object({
+  ok: zod.boolean(),
+});
+
+export const ListRepairsQueryParams = zod.object({
+  status: zod
+    .enum(["received", "in_progress", "ready", "delivered", "all"])
+    .optional(),
+});
+
+export const ListRepairsResponseItem = zod.object({
+  id: zod.string(),
+  ticketNumber: zod.string(),
+  customerId: zod.string(),
+  customerName: zod.string(),
+  itemDescription: zod.string(),
+  metal: zod.string(),
+  purity: zod.string().nullish(),
+  weightGrams: zod.number(),
+  issue: zod.string(),
+  estimatedCost: zod.number(),
+  finalCost: zod.number().nullish(),
+  receivedDate: zod.coerce.date(),
+  promisedDate: zod.coerce.date().nullish(),
+  deliveredDate: zod.coerce.date().nullish(),
+  status: zod.enum(["received", "in_progress", "ready", "delivered"]),
+  paidAmount: zod.number(),
+  notes: zod.string().nullish(),
+});
+export const ListRepairsResponse = zod.array(ListRepairsResponseItem);
+
+export const CreateRepairBody = zod.object({
+  customerId: zod.string(),
+  itemDescription: zod.string().min(1),
+  metal: zod.enum(["gold", "silver", "platinum", "diamond"]),
+  purity: zod.string().nullish(),
+  weightGrams: zod.number(),
+  issue: zod.string().min(1),
+  estimatedCost: zod.number(),
+  receivedDate: zod.coerce.date(),
+  promisedDate: zod.coerce.date().nullish(),
+  notes: zod.string().nullish(),
+});
+
+export const CreateRepairResponse = zod.object({
+  id: zod.string(),
+  ticketNumber: zod.string(),
+  customerId: zod.string(),
+  customerName: zod.string(),
+  itemDescription: zod.string(),
+  metal: zod.string(),
+  purity: zod.string().nullish(),
+  weightGrams: zod.number(),
+  issue: zod.string(),
+  estimatedCost: zod.number(),
+  finalCost: zod.number().nullish(),
+  receivedDate: zod.coerce.date(),
+  promisedDate: zod.coerce.date().nullish(),
+  deliveredDate: zod.coerce.date().nullish(),
+  status: zod.enum(["received", "in_progress", "ready", "delivered"]),
+  paidAmount: zod.number(),
+  notes: zod.string().nullish(),
+});
+
+export const UpdateRepairParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const UpdateRepairBody = zod.object({
+  status: zod.enum(["received", "in_progress", "ready", "delivered"]),
+  finalCost: zod.number().nullish(),
+  paidAmount: zod.number().nullish(),
+  deliveredDate: zod.coerce.date().nullish(),
+  notes: zod.string().nullish(),
+});
+
+export const UpdateRepairResponse = zod.object({
+  id: zod.string(),
+  ticketNumber: zod.string(),
+  customerId: zod.string(),
+  customerName: zod.string(),
+  itemDescription: zod.string(),
+  metal: zod.string(),
+  purity: zod.string().nullish(),
+  weightGrams: zod.number(),
+  issue: zod.string(),
+  estimatedCost: zod.number(),
+  finalCost: zod.number().nullish(),
+  receivedDate: zod.coerce.date(),
+  promisedDate: zod.coerce.date().nullish(),
+  deliveredDate: zod.coerce.date().nullish(),
+  status: zod.enum(["received", "in_progress", "ready", "delivered"]),
+  paidAmount: zod.number(),
+  notes: zod.string().nullish(),
+});
+
+export const DeleteRepairParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteRepairResponse = zod.object({
+  ok: zod.boolean(),
+});
+
+export const ListSchemePlansResponseItem = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  monthlyAmount: zod.number(),
+  durationMonths: zod.number(),
+  bonusMonths: zod.number(),
+  description: zod.string().nullish(),
+  active: zod.boolean(),
+  accountCount: zod.number(),
+  createdAt: zod.coerce.date(),
+});
+export const ListSchemePlansResponse = zod.array(ListSchemePlansResponseItem);
+
+export const CreateSchemePlanBody = zod.object({
+  name: zod.string().min(1),
+  monthlyAmount: zod.number(),
+  durationMonths: zod.number(),
+  bonusMonths: zod.number(),
+  description: zod.string().nullish(),
+  active: zod.boolean(),
+});
+
+export const CreateSchemePlanResponse = zod.object({
+  id: zod.string(),
+  name: zod.string(),
+  monthlyAmount: zod.number(),
+  durationMonths: zod.number(),
+  bonusMonths: zod.number(),
+  description: zod.string().nullish(),
+  active: zod.boolean(),
+  accountCount: zod.number(),
+  createdAt: zod.coerce.date(),
+});
+
+export const DeleteSchemePlanParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeleteSchemePlanResponse = zod.object({
+  ok: zod.boolean(),
+});
+
+export const ListSchemeAccountsQueryParams = zod.object({
+  status: zod.enum(["active", "redeemed", "all"]).optional(),
+});
+
+export const ListSchemeAccountsResponseItem = zod.object({
+  id: zod.string(),
+  accountNumber: zod.string(),
+  planId: zod.string(),
+  planName: zod.string(),
+  customerId: zod.string(),
+  customerName: zod.string(),
+  startDate: zod.coerce.date(),
+  maturityDate: zod.coerce.date().nullish(),
+  status: zod.enum(["active", "redeemed"]),
+  installmentsPaid: zod.number(),
+  totalInstallments: zod.number(),
+  accumulatedAmount: zod.number(),
+  bonusAmount: zod.number(),
+  redeemableAmount: zod.number(),
+});
+export const ListSchemeAccountsResponse = zod.array(
+  ListSchemeAccountsResponseItem,
+);
+
+export const CreateSchemeAccountBody = zod.object({
+  planId: zod.string(),
+  customerId: zod.string(),
+  startDate: zod.coerce.date(),
+  notes: zod.string().nullish(),
+});
+
+export const CreateSchemeAccountResponse = zod
+  .object({
+    id: zod.string(),
+    accountNumber: zod.string(),
+    planId: zod.string(),
+    planName: zod.string(),
+    customerId: zod.string(),
+    customerName: zod.string(),
+    startDate: zod.coerce.date(),
+    maturityDate: zod.coerce.date().nullish(),
+    status: zod.enum(["active", "redeemed"]),
+    installmentsPaid: zod.number(),
+    totalInstallments: zod.number(),
+    accumulatedAmount: zod.number(),
+    bonusAmount: zod.number(),
+    redeemableAmount: zod.number(),
+  })
+  .and(
+    zod.object({
+      installments: zod.array(
+        zod.object({
+          id: zod.string(),
+          installmentNumber: zod.number(),
+          paidAmount: zod.number(),
+          paidAt: zod.coerce.date(),
+          note: zod.string().nullish(),
+        }),
+      ),
+    }),
+  );
+
+export const GetSchemeAccountParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetSchemeAccountResponse = zod
+  .object({
+    id: zod.string(),
+    accountNumber: zod.string(),
+    planId: zod.string(),
+    planName: zod.string(),
+    customerId: zod.string(),
+    customerName: zod.string(),
+    startDate: zod.coerce.date(),
+    maturityDate: zod.coerce.date().nullish(),
+    status: zod.enum(["active", "redeemed"]),
+    installmentsPaid: zod.number(),
+    totalInstallments: zod.number(),
+    accumulatedAmount: zod.number(),
+    bonusAmount: zod.number(),
+    redeemableAmount: zod.number(),
+  })
+  .and(
+    zod.object({
+      installments: zod.array(
+        zod.object({
+          id: zod.string(),
+          installmentNumber: zod.number(),
+          paidAmount: zod.number(),
+          paidAt: zod.coerce.date(),
+          note: zod.string().nullish(),
+        }),
+      ),
+    }),
+  );
+
+export const PaySchemeInstallmentParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const PaySchemeInstallmentBody = zod.object({
+  paidAmount: zod.number(),
+  note: zod.string().nullish(),
+});
+
+export const PaySchemeInstallmentResponse = zod
+  .object({
+    id: zod.string(),
+    accountNumber: zod.string(),
+    planId: zod.string(),
+    planName: zod.string(),
+    customerId: zod.string(),
+    customerName: zod.string(),
+    startDate: zod.coerce.date(),
+    maturityDate: zod.coerce.date().nullish(),
+    status: zod.enum(["active", "redeemed"]),
+    installmentsPaid: zod.number(),
+    totalInstallments: zod.number(),
+    accumulatedAmount: zod.number(),
+    bonusAmount: zod.number(),
+    redeemableAmount: zod.number(),
+  })
+  .and(
+    zod.object({
+      installments: zod.array(
+        zod.object({
+          id: zod.string(),
+          installmentNumber: zod.number(),
+          paidAmount: zod.number(),
+          paidAt: zod.coerce.date(),
+          note: zod.string().nullish(),
+        }),
+      ),
+    }),
+  );
+
+export const RedeemSchemeAccountParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const RedeemSchemeAccountResponse = zod
+  .object({
+    id: zod.string(),
+    accountNumber: zod.string(),
+    planId: zod.string(),
+    planName: zod.string(),
+    customerId: zod.string(),
+    customerName: zod.string(),
+    startDate: zod.coerce.date(),
+    maturityDate: zod.coerce.date().nullish(),
+    status: zod.enum(["active", "redeemed"]),
+    installmentsPaid: zod.number(),
+    totalInstallments: zod.number(),
+    accumulatedAmount: zod.number(),
+    bonusAmount: zod.number(),
+    redeemableAmount: zod.number(),
+  })
+  .and(
+    zod.object({
+      installments: zod.array(
+        zod.object({
+          id: zod.string(),
+          installmentNumber: zod.number(),
+          paidAmount: zod.number(),
+          paidAt: zod.coerce.date(),
+          note: zod.string().nullish(),
+        }),
+      ),
+    }),
+  );
+
+export const GetShopSettingsResponse = zod.object({
+  shopName: zod.string(),
+  tagline: zod.string().nullish(),
+  address: zod.string().nullish(),
+  city: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  email: zod.string().nullish(),
+  gstin: zod.string().nullish(),
+  pan: zod.string().nullish(),
+  upiId: zod.string().nullish(),
+  bankName: zod.string().nullish(),
+  bankAccount: zod.string().nullish(),
+  bankIfsc: zod.string().nullish(),
+  invoiceTerms: zod.string().nullish(),
+  updatedAt: zod.coerce.date(),
+});
+
+export const UpdateShopSettingsBody = zod.object({
+  shopName: zod.string().min(1),
+  tagline: zod.string().nullish(),
+  address: zod.string().nullish(),
+  city: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  email: zod.string().nullish(),
+  gstin: zod.string().nullish(),
+  pan: zod.string().nullish(),
+  upiId: zod.string().nullish(),
+  bankName: zod.string().nullish(),
+  bankAccount: zod.string().nullish(),
+  bankIfsc: zod.string().nullish(),
+  invoiceTerms: zod.string().nullish(),
+});
+
+export const UpdateShopSettingsResponse = zod.object({
+  shopName: zod.string(),
+  tagline: zod.string().nullish(),
+  address: zod.string().nullish(),
+  city: zod.string().nullish(),
+  phone: zod.string().nullish(),
+  email: zod.string().nullish(),
+  gstin: zod.string().nullish(),
+  pan: zod.string().nullish(),
+  upiId: zod.string().nullish(),
+  bankName: zod.string().nullish(),
+  bankAccount: zod.string().nullish(),
+  bankIfsc: zod.string().nullish(),
+  invoiceTerms: zod.string().nullish(),
+  updatedAt: zod.coerce.date(),
+});
+
+export const GetDaybookQueryParams = zod.object({
+  date: zod.date().optional(),
+});
+
+export const GetDaybookResponse = zod.object({
+  date: zod.coerce.date(),
+  openingCash: zod.number(),
+  cashIn: zod.number(),
+  cashOut: zod.number(),
+  upiIn: zod.number(),
+  cardIn: zod.number(),
+  bankIn: zod.number(),
+  netSales: zod.number(),
+  entries: zod.array(
+    zod.object({
+      time: zod.coerce.date(),
+      kind: zod.enum([
+        "sale",
+        "payment_in",
+        "payment_out",
+        "girvi_loan",
+        "girvi_payment",
+        "repair_collected",
+        "scheme_installment",
+      ]),
+      reference: zod.string(),
+      party: zod.string(),
+      amount: zod.number(),
+      mode: zod.string(),
+    }),
+  ),
+});
 
 /**
  * @summary Headline KPIs for the dashboard

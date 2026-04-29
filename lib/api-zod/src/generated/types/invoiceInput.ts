@@ -7,6 +7,7 @@
  */
 import type { InvoiceInputType } from "./invoiceInputType";
 import type { InvoiceItemInput } from "./invoiceItemInput";
+import type { OldGoldItemInput } from "./oldGoldItemInput";
 
 export interface InvoiceInput {
   type: InvoiceInputType;
@@ -14,7 +15,9 @@ export interface InvoiceInput {
   date: Date;
   discount: number;
   notes?: string | null;
+  paymentMode?: string;
   /** @minItems 1 */
   items: InvoiceItemInput[];
+  oldGoldItems?: OldGoldItemInput[];
   paidAmount: number;
 }
