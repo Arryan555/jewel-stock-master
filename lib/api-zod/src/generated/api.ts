@@ -1598,3 +1598,183 @@ export const GetMetalRatesResponseItem = zod.object({
   updatedAt: zod.coerce.date(),
 });
 export const GetMetalRatesResponse = zod.array(GetMetalRatesResponseItem);
+
+/**
+ * @summary List purchase vouchers
+ */
+export const ListPurchasesQueryParams = zod.object({
+  vendorName: zod.coerce.string().optional(),
+  from: zod.date().optional(),
+  to: zod.date().optional(),
+});
+
+export const ListPurchasesResponseItem = zod.object({
+  id: zod.string(),
+  voucherNumber: zod.string(),
+  vendorName: zod.string(),
+  vendorPhone: zod.string().nullish(),
+  date: zod.coerce.date(),
+  subtotal: zod.number(),
+  discount: zod.number(),
+  total: zod.number(),
+  paidAmount: zod.number(),
+  balance: zod.number(),
+  status: zod.enum(["paid", "partial", "unpaid"]),
+  paymentMode: zod.string(),
+  goldPayWeight: zod.number(),
+  silverPayWeight: zod.number(),
+});
+export const ListPurchasesResponse = zod.array(ListPurchasesResponseItem);
+
+export const CreatePurchaseBody = zod.object({
+  vendorName: zod.string().min(1),
+  vendorPhone: zod.string().nullish(),
+  date: zod.coerce.date().nullish(),
+  discount: zod.number().nullish(),
+  paidAmount: zod.number().nullish(),
+  paymentMode: zod.string().nullish(),
+  goldPayWeight: zod.number().nullish(),
+  silverPayWeight: zod.number().nullish(),
+  notes: zod.string().nullish(),
+  items: zod.array(
+    zod.object({
+      description: zod.string(),
+      metal: zod.string(),
+      purity: zod.string(),
+      purityPercent: zod.number(),
+      grossWeight: zod.number(),
+      lessWeight: zod.number(),
+      ratePerGram: zod.number(),
+    }),
+  ),
+});
+
+export const CreatePurchaseResponse = zod.object({
+  id: zod.string(),
+  voucherNumber: zod.string(),
+  vendorName: zod.string(),
+  vendorPhone: zod.string().nullish(),
+  date: zod.coerce.date(),
+  subtotal: zod.number(),
+  discount: zod.number(),
+  total: zod.number(),
+  paidAmount: zod.number(),
+  balance: zod.number(),
+  status: zod.enum(["paid", "partial", "unpaid"]),
+  paymentMode: zod.string(),
+  goldPayWeight: zod.number(),
+  silverPayWeight: zod.number(),
+});
+
+export const GetPurchaseParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const GetPurchaseResponse = zod
+  .object({
+    id: zod.string(),
+    voucherNumber: zod.string(),
+    vendorName: zod.string(),
+    vendorPhone: zod.string().nullish(),
+    date: zod.coerce.date(),
+    subtotal: zod.number(),
+    discount: zod.number(),
+    total: zod.number(),
+    paidAmount: zod.number(),
+    balance: zod.number(),
+    status: zod.enum(["paid", "partial", "unpaid"]),
+    paymentMode: zod.string(),
+    goldPayWeight: zod.number(),
+    silverPayWeight: zod.number(),
+  })
+  .and(
+    zod.object({
+      notes: zod.string().nullish(),
+      items: zod.array(
+        zod.object({
+          id: zod.string(),
+          description: zod.string(),
+          metal: zod.string(),
+          purity: zod.string(),
+          purityPercent: zod.number(),
+          grossWeight: zod.number(),
+          lessWeight: zod.number(),
+          netWeight: zod.number(),
+          fineWeight: zod.number(),
+          ratePerGram: zod.number(),
+          amount: zod.number(),
+        }),
+      ),
+    }),
+  );
+
+export const DeletePurchaseParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const DeletePurchaseResponse = zod.object({
+  id: zod.string(),
+});
+
+export const RecordPurchasePaymentParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const RecordPurchasePaymentBody = zod.object({
+  amount: zod.number(),
+});
+
+export const RecordPurchasePaymentResponse = zod.object({
+  id: zod.string(),
+  voucherNumber: zod.string(),
+  vendorName: zod.string(),
+  vendorPhone: zod.string().nullish(),
+  date: zod.coerce.date(),
+  subtotal: zod.number(),
+  discount: zod.number(),
+  total: zod.number(),
+  paidAmount: zod.number(),
+  balance: zod.number(),
+  status: zod.enum(["paid", "partial", "unpaid"]),
+  paymentMode: zod.string(),
+  goldPayWeight: zod.number(),
+  silverPayWeight: zod.number(),
+});
+
+/**
+ * @summary Get AMC settings
+ */
+export const GetAmcSettingsResponse = zod.object({
+  startDate: zod.coerce.date().nullish(),
+  endDate: zod.coerce.date().nullish(),
+  plan: zod.string(),
+  vendorName: zod.string().nullish(),
+  warnBeforeDays: zod.number(),
+  notes: zod.string().nullish(),
+  daysRemaining: zod.number().nullish(),
+  isExpired: zod.boolean(),
+  isExpiringSoon: zod.boolean(),
+  updatedAt: zod.coerce.date(),
+});
+
+export const UpdateAmcSettingsBody = zod.object({
+  startDate: zod.string().nullish(),
+  endDate: zod.string().nullish(),
+  plan: zod.string().nullish(),
+  vendorName: zod.string().nullish(),
+  warnBeforeDays: zod.number().nullish(),
+  notes: zod.string().nullish(),
+});
+
+export const UpdateAmcSettingsResponse = zod.object({
+  startDate: zod.coerce.date().nullish(),
+  endDate: zod.coerce.date().nullish(),
+  plan: zod.string(),
+  vendorName: zod.string().nullish(),
+  warnBeforeDays: zod.number(),
+  notes: zod.string().nullish(),
+  daysRemaining: zod.number().nullish(),
+  isExpired: zod.boolean(),
+  isExpiringSoon: zod.boolean(),
+  updatedAt: zod.coerce.date(),
+});

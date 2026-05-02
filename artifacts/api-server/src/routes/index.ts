@@ -11,6 +11,8 @@ import repairsRouter from "./repairs";
 import schemesRouter from "./schemes";
 import settingsRouter from "./settings";
 import reportsRouter from "./reports";
+import purchasesRouter from "./purchases";
+import amcRouter from "./amc";
 
 const router: IRouter = Router();
 
@@ -26,5 +28,7 @@ router.use(repairsRouter);
 router.use(schemesRouter);
 router.use(settingsRouter);
 router.use(reportsRouter);
+router.use(purchasesRouter);
+router.use(amcRouter);
 
 export default router;

@@ -38,6 +38,8 @@ pnpm workspace monorepo for **Jewel Suite** — a stylish jewellery management w
 - **Invoice** — type=retail|wholesale, items[], discount, paidAmount, status auto-derived
 - **GirviLoan** — collateral pledge, interestRatePerMonth, dueDate, payments[], outstanding
 - **LedgerEntry** — credit/debit per customer with running balance
+- **PurchaseVoucher** — buy gold/silver from vendors; items with grossWeight/lessWeight/fineWeight/rate; paidAmount tracks payment; status computed (paid/partial/unpaid)
+- **AmcSettings** — singleton (id=1) for Annual Maintenance Contract tracking; warnBeforeDays triggers sidebar banner when expiring soon
 
 ## Key Commands
 
@@ -46,7 +48,7 @@ pnpm workspace monorepo for **Jewel Suite** — a stylish jewellery management w
 - `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from OpenAPI spec
 - `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
 - `pnpm --filter @workspace/api-server run dev` — run API server locally
-- `pnpm --filter @workspace/api-server exec tsx src/seed.ts` — seed DB with sample data
+- `pnpm --filter @workspace/api-server run seed` — seed DB with sample data (uses tsx)
 
 ## Codegen Workflow
 

@@ -823,6 +823,101 @@ export interface DaybookReport {
   entries: DaybookEntry[];
 }
 
+export interface PurchaseVoucherItem {
+  id: string;
+  description: string;
+  metal: string;
+  purity: string;
+  purityPercent: number;
+  grossWeight: number;
+  lessWeight: number;
+  netWeight: number;
+  fineWeight: number;
+  ratePerGram: number;
+  amount: number;
+}
+
+export interface PurchaseVoucherItemInput {
+  description: string;
+  metal: string;
+  purity: string;
+  purityPercent: number;
+  grossWeight: number;
+  lessWeight: number;
+  ratePerGram: number;
+}
+
+export type PurchaseVoucherSummaryStatus =
+  (typeof PurchaseVoucherSummaryStatus)[keyof typeof PurchaseVoucherSummaryStatus];
+
+export const PurchaseVoucherSummaryStatus = {
+  paid: "paid",
+  partial: "partial",
+  unpaid: "unpaid",
+} as const;
+
+export interface PurchaseVoucherSummary {
+  id: string;
+  voucherNumber: string;
+  vendorName: string;
+  vendorPhone?: string | null;
+  date: string;
+  subtotal: number;
+  discount: number;
+  total: number;
+  paidAmount: number;
+  balance: number;
+  status: PurchaseVoucherSummaryStatus;
+  paymentMode: string;
+  goldPayWeight: number;
+  silverPayWeight: number;
+}
+
+export type PurchaseVoucher = PurchaseVoucherSummary & {
+  notes?: string | null;
+  items: PurchaseVoucherItem[];
+};
+
+export interface PurchaseInput {
+  /** @minLength 1 */
+  vendorName: string;
+  vendorPhone?: string | null;
+  date?: string | null;
+  discount?: number | null;
+  paidAmount?: number | null;
+  paymentMode?: string | null;
+  goldPayWeight?: number | null;
+  silverPayWeight?: number | null;
+  notes?: string | null;
+  items: PurchaseVoucherItemInput[];
+}
+
+export interface PurchasePaymentInput {
+  amount: number;
+}
+
+export interface AmcSettings {
+  startDate?: string | null;
+  endDate?: string | null;
+  plan: string;
+  vendorName?: string | null;
+  warnBeforeDays: number;
+  notes?: string | null;
+  daysRemaining?: number | null;
+  isExpired: boolean;
+  isExpiringSoon: boolean;
+  updatedAt: string;
+}
+
+export interface AmcSettingsInput {
+  startDate?: string | null;
+  endDate?: string | null;
+  plan?: string | null;
+  vendorName?: string | null;
+  warnBeforeDays?: number | null;
+  notes?: string | null;
+}
+
 export type ListCustomersParams = {
   type?: ListCustomersType;
   search?: string;
@@ -936,4 +1031,14 @@ export type GetDaybookParams = {
 export type GetGstReportParams = {
   from?: string;
   to?: string;
+};
+
+export type ListPurchasesParams = {
+  vendorName?: string;
+  from?: string;
+  to?: string;
+};
+
+export type DeletePurchase200 = {
+  id: string;
 };

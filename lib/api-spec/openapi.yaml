@@ -20,6 +20,8 @@ tags:
   - name: schemes
   - name: settings
   - name: reports
+  - name: purchases
+  - name: amc
 paths:
   /healthz:
     get:
@@ -980,6 +982,123 @@ paths:
                 type: array
                 items: { $ref: "#/components/schemas/MetalRate" }
 
+  /purchases:
+    get:
+      operationId: listPurchases
+      tags: [purchases]
+      summary: List purchase vouchers
+      parameters:
+        - in: query
+          name: vendorName
+          schema: { type: string }
+        - in: query
+          name: from
+          schema: { type: string, format: date }
+        - in: query
+          name: to
+          schema: { type: string, format: date }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/PurchaseVoucherSummary" }
+    post:
+      operationId: createPurchase
+      tags: [purchases]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PurchaseInput" }
+      responses:
+        "200":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PurchaseVoucherSummary" }
+  /purchases/{id}:
+    get:
+      operationId: getPurchase
+      tags: [purchases]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PurchaseVoucher" }
+    delete:
+      operationId: deletePurchase
+      tags: [purchases]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id: { type: string }
+                required: [id]
+  /purchases/{id}/payment:
+    post:
+      operationId: recordPurchasePayment
+      tags: [purchases]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/PurchasePaymentInput" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/PurchaseVoucherSummary" }
+
+  /amc:
+    get:
+      operationId: getAmcSettings
+      tags: [amc]
+      summary: Get AMC settings
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AmcSettings" }
+    put:
+      operationId: updateAmcSettings
+      tags: [amc]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AmcSettingsInput" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AmcSettings" }
+
 components:
   schemas:
     Ok:
@@ -1659,3 +1778,110 @@ components:
           type: array
           items: { $ref: "#/components/schemas/DaybookEntry" }
       required: [date, openingCash, cashIn, cashOut, upiIn, cardIn, bankIn, netSales, entries]
+
+    PurchaseVoucherItem:
+      type: object
+      properties:
+        id: { type: string }
+        description: { type: string }
+        metal: { type: string }
+        purity: { type: string }
+        purityPercent: { type: number }
+        grossWeight: { type: number }
+        lessWeight: { type: number }
+        netWeight: { type: number }
+        fineWeight: { type: number }
+        ratePerGram: { type: number }
+        amount: { type: number }
+      required: [id, description, metal, purity, purityPercent, grossWeight, lessWeight, netWeight, fineWeight, ratePerGram, amount]
+
+    PurchaseVoucherItemInput:
+      type: object
+      properties:
+        description: { type: string }
+        metal: { type: string }
+        purity: { type: string }
+        purityPercent: { type: number }
+        grossWeight: { type: number }
+        lessWeight: { type: number }
+        ratePerGram: { type: number }
+      required: [description, metal, purity, purityPercent, grossWeight, lessWeight, ratePerGram]
+
+    PurchaseVoucherSummary:
+      type: object
+      properties:
+        id: { type: string }
+        voucherNumber: { type: string }
+        vendorName: { type: string }
+        vendorPhone: { type: string, nullable: true }
+        date: { type: string, format: date-time }
+        subtotal: { type: number }
+        discount: { type: number }
+        total: { type: number }
+        paidAmount: { type: number }
+        balance: { type: number }
+        status: { type: string, enum: [paid, partial, unpaid] }
+        paymentMode: { type: string }
+        goldPayWeight: { type: number }
+        silverPayWeight: { type: number }
+      required: [id, voucherNumber, vendorName, date, subtotal, discount, total, paidAmount, balance, status, paymentMode, goldPayWeight, silverPayWeight]
+
+    PurchaseVoucher:
+      allOf:
+        - $ref: "#/components/schemas/PurchaseVoucherSummary"
+        - type: object
+          properties:
+            notes: { type: string, nullable: true }
+            items:
+              type: array
+              items: { $ref: "#/components/schemas/PurchaseVoucherItem" }
+          required: [items]
+
+    PurchaseInput:
+      type: object
+      properties:
+        vendorName: { type: string, minLength: 1 }
+        vendorPhone: { type: string, nullable: true }
+        date: { type: string, format: date-time, nullable: true }
+        discount: { type: number, nullable: true }
+        paidAmount: { type: number, nullable: true }
+        paymentMode: { type: string, nullable: true }
+        goldPayWeight: { type: number, nullable: true }
+        silverPayWeight: { type: number, nullable: true }
+        notes: { type: string, nullable: true }
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/PurchaseVoucherItemInput" }
+      required: [vendorName, items]
+
+    PurchasePaymentInput:
+      type: object
+      properties:
+        amount: { type: number }
+      required: [amount]
+
+    AmcSettings:
+      type: object
+      properties:
+        startDate: { type: string, format: date-time, nullable: true }
+        endDate: { type: string, format: date-time, nullable: true }
+        plan: { type: string }
+        vendorName: { type: string, nullable: true }
+        warnBeforeDays: { type: integer }
+        notes: { type: string, nullable: true }
+        daysRemaining: { type: integer, nullable: true }
+        isExpired: { type: boolean }
+        isExpiringSoon: { type: boolean }
+        updatedAt: { type: string, format: date-time }
+      required: [plan, warnBeforeDays, isExpired, isExpiringSoon, updatedAt]
+
+    AmcSettingsInput:
+      type: object
+      properties:
+        startDate: { type: string, nullable: true }
+        endDate: { type: string, nullable: true }
+        plan: { type: string, nullable: true }
+        vendorName: { type: string, nullable: true }
+        warnBeforeDays: { type: integer, nullable: true }
+        notes: { type: string, nullable: true }
+      required: []

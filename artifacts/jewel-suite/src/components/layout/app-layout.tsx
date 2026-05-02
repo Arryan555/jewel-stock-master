@@ -17,11 +17,17 @@ import {
   PiggyBank,
   Settings as SettingsIcon,
   CalendarDays,
+  ShoppingCart,
+  ShieldCheck,
+  ShieldAlert,
+  ShieldOff,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { CommandPalette } from "@/components/command-palette";
+import { useGetAmcSettings } from "@workspace/api-client-react";
+import { Link as WouterLink } from "wouter";
 
 const NAV_ITEMS = [
   { group: "Overview", items: [{ name: "Dashboard", href: "/", icon: LayoutDashboard }] },
@@ -32,6 +38,12 @@ const NAV_ITEMS = [
       { name: "New Retail", href: "/billing/retail/new", icon: Receipt },
       { name: "New Wholesale", href: "/billing/wholesale/new", icon: FileSpreadsheet },
       { name: "Estimates", href: "/estimates", icon: ClipboardList },
+    ],
+  },
+  {
+    group: "Purchase",
+    items: [
+      { name: "Purchase Vouchers", href: "/purchases", icon: ShoppingCart },
     ],
   },
   { group: "Inventory", items: [{ name: "Products", href: "/products", icon: Package }] },
@@ -62,13 +74,41 @@ const NAV_ITEMS = [
     ],
   },
   {
-    group: "Masters",
+    group: "Settings & AMC",
     items: [
       { name: "Customers", href: "/customers", icon: Users },
       { name: "Shop Settings", href: "/settings", icon: SettingsIcon },
+      { name: "AMC", href: "/amc", icon: ShieldCheck },
     ],
   },
 ];
+
+function AmcBanner() {
+  const { data } = useGetAmcSettings();
+  if (!data || (!data.isExpired && !data.isExpiringSoon)) return null;
+
+  return (
+    <WouterLink href="/amc">
+      <div
+        className={cn(
+          "mx-3 mb-2 rounded-lg px-3 py-2 text-xs font-medium flex items-center gap-2 cursor-pointer border transition-colors",
+          data.isExpired
+            ? "bg-red-50 border-red-200 text-red-800 hover:bg-red-100"
+            : "bg-amber-50 border-amber-200 text-amber-800 hover:bg-amber-100",
+        )}
+      >
+        {data.isExpired
+          ? <ShieldOff className="h-3.5 w-3.5 shrink-0" />
+          : <ShieldAlert className="h-3.5 w-3.5 shrink-0" />}
+        <span>
+          {data.isExpired
+            ? "AMC Expired — renew now"
+            : `AMC expiring in ${data.daysRemaining}d`}
+        </span>
+      </div>
+    </WouterLink>
+  );
+}
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -103,6 +143,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             </kbd>
             <span className="ml-2 text-xs text-muted-foreground">Quick search</span>
           </div>
+
+          <AmcBanner />
+
           {NAV_ITEMS.map((group) => (
             <div key={group.group}>
               <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">

@@ -24,6 +24,10 @@ import RepairsIndex from "@/pages/repairs";
 import SchemesIndex from "@/pages/schemes";
 import SchemeAccountDetail from "@/pages/schemes/detail";
 import SettingsPage from "@/pages/settings";
+import PurchasesIndex from "@/pages/purchases";
+import PurchaseNew from "@/pages/purchases/new";
+import PurchaseDetail from "@/pages/purchases/detail";
+import AmcPage from "@/pages/amc";
 import DaybookReport from "@/pages/reports/daybook";
 import SalesReport from "@/pages/reports/sales";
 import GstReport from "@/pages/reports/gst";
@@ -75,6 +79,12 @@ function Router() {
         <Route path="/schemes/:id" component={SchemeAccountDetail} />
 
         <Route path="/settings" component={SettingsPage} />
+
+        <Route path="/purchases" component={PurchasesIndex} />
+        <Route path="/purchases/new" component={PurchaseNew} />
+        <Route path="/purchases/:id" component={PurchaseDetail} />
+
+        <Route path="/amc" component={AmcPage} />
 
         <Route path="/reports/daybook" component={DaybookReport} />
         <Route path="/reports/sales" component={SalesReport} />

@@ -17,6 +17,9 @@ import {
   schemeAccountsTable,
   schemeInstallmentsTable,
   shopSettingsTable,
+  purchaseVouchersTable,
+  purchaseVoucherItemsTable,
+  amcSettingsTable,
 } from "@workspace/db";
 import { sql } from "drizzle-orm";
 import { computeInvoiceTotals, computeItem, nextSerial } from "./lib/calc";
@@ -39,6 +42,9 @@ async function clear() {
   await db.delete(productsTable);
   await db.delete(customersTable);
   await db.delete(shopSettingsTable);
+  await db.delete(purchaseVoucherItemsTable);
+  await db.delete(purchaseVouchersTable);
+  await db.delete(amcSettingsTable);
 }
 
 async function seed() {
@@ -776,6 +782,123 @@ async function seed() {
     amount: (estTaxable + estGst).toFixed(2),
   });
 
+  // ===== Purchase Vouchers =====
+  let purchaseCounter = 0;
+  const pv1 = await db
+    .insert(purchaseVouchersTable)
+    .values({
+      voucherNumber: nextSerial("PV", purchaseCounter++),
+      vendorName: "Ramesh Soni Gold Suppliers",
+      vendorPhone: "+91 98100 44321",
+      date: new Date(today.getTime() - 10 * 86400000),
+      subtotal: "176181.00",
+      discount: "2800.00",
+      total: "173381.00",
+      paidAmount: "173381.00",
+      paymentMode: "NEFT",
+      goldPayWeight: "0",
+      silverPayWeight: "0",
+      notes: "22K gold bars — verified hallmark",
+    })
+    .returning();
+  await db.insert(purchaseVoucherItemsTable).values([
+    {
+      voucherId: pv1[0].id,
+      description: "Gold Bar 22K",
+      metal: "gold",
+      purity: "22K",
+      grossWeight: "20.500",
+      lessWeight: "0.000",
+      netWeight: "20.500",
+      fineWeight: "18.792",
+      ratePerGram: "7300.00",
+      amount: "137181.00",
+    },
+    {
+      voucherId: pv1[0].id,
+      description: "Gold Coins 24K",
+      metal: "gold",
+      purity: "24K",
+      grossWeight: "5.000",
+      lessWeight: "0.000",
+      netWeight: "5.000",
+      fineWeight: "5.000",
+      ratePerGram: "7800.00",
+      amount: "39000.00",
+    },
+  ]);
+
+  const pv2 = await db
+    .insert(purchaseVouchersTable)
+    .values({
+      voucherNumber: nextSerial("PV", purchaseCounter++),
+      vendorName: "Priya Silver Works",
+      vendorPhone: "+91 94400 55678",
+      date: new Date(today.getTime() - 4 * 86400000),
+      subtotal: "28500.00",
+      discount: "0.00",
+      total: "28500.00",
+      paidAmount: "15000.00",
+      paymentMode: "Cash",
+      goldPayWeight: "0",
+      silverPayWeight: "0",
+      notes: "Pure 92.5 silver sheets",
+    })
+    .returning();
+  await db.insert(purchaseVoucherItemsTable).values({
+    voucherId: pv2[0].id,
+    description: "Silver Sheets 92.5",
+    metal: "silver",
+    purity: "92.5",
+    grossWeight: "300.000",
+    lessWeight: "5.000",
+    netWeight: "295.000",
+    fineWeight: "272.875",
+    ratePerGram: "95.00",
+    amount: "28500.00",
+  });
+
+  const pv3 = await db
+    .insert(purchaseVouchersTable)
+    .values({
+      voucherNumber: nextSerial("PV", purchaseCounter++),
+      vendorName: "Kamal Jewel Exchange",
+      vendorPhone: "+91 99100 88421",
+      date: new Date(today.getTime() - 1 * 86400000),
+      subtotal: "86062.50",
+      discount: "750.00",
+      total: "85312.50",
+      paidAmount: "0.00",
+      paymentMode: "UPI",
+      goldPayWeight: "0",
+      silverPayWeight: "0",
+      notes: "Old gold exchange purchased from walk-in customer",
+    })
+    .returning();
+  await db.insert(purchaseVoucherItemsTable).values({
+    voucherId: pv3[0].id,
+    description: "Old Gold Jewellery 18K",
+    metal: "gold",
+    purity: "18K",
+    grossWeight: "15.800",
+    lessWeight: "0.500",
+    netWeight: "15.300",
+    fineWeight: "11.475",
+    ratePerGram: "7500.00",
+    amount: "86062.50",
+  });
+
+  // ===== AMC Settings =====
+  await db.insert(amcSettingsTable).values({
+    id: 1,
+    startDate: new Date(today.getTime() - 320 * 86400000),
+    endDate: new Date(today.getTime() + 45 * 86400000),
+    plan: "1y",
+    vendorName: "Arryan Technologies",
+    notes: "Includes support, updates and cloud backup.",
+    warnBeforeDays: 30,
+  });
+
   console.log("Seeded:", {
     customers: customers.length,
     products: products.length,
@@ -784,6 +907,8 @@ async function seed() {
     karigars: karigars.length,
     plans: plans.length,
     schemeAccounts: schemeAccs.length,
+    purchaseVouchers: 3,
+    amc: 1,
   });
   void sql;
 }

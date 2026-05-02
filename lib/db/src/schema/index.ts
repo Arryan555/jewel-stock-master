@@ -8,3 +8,5 @@ export * from "./repairs";
 export * from "./estimates";
 export * from "./schemes";
 export * from "./settings";
+export * from "./purchases";
+export * from "./amc";
