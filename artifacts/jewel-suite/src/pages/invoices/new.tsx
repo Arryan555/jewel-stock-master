@@ -38,7 +38,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Trash2, Receipt, FileSpreadsheet, Coins } from "lucide-react";
+import { Plus, Trash2, Receipt, FileSpreadsheet, Coins, ChevronUp, ChevronDown } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import { computeRowAmount } from "@/lib/calc";
 import { useToast } from "@/hooks/use-toast";
@@ -161,6 +161,16 @@ export default function InvoiceNew() {
 
   function removeRow(idx: number) {
     setRows((prev) => prev.filter((_, i) => i !== idx));
+  }
+
+  function moveRow(idx: number, dir: -1 | 1) {
+    setRows((prev) => {
+      const next = [...prev];
+      const target = idx + dir;
+      if (target < 0 || target >= next.length) return prev;
+      [next[idx], next[target]] = [next[target], next[idx]];
+      return next;
+    });
   }
 
   function addOldGold() {
@@ -293,6 +303,7 @@ export default function InvoiceNew() {
           <Table className="min-w-[1100px]">
             <TableHeader className="bg-secondary/20">
               <TableRow>
+                <TableHead className="w-12">#</TableHead>
                 <TableHead className="min-w-[200px]">Item</TableHead>
                 <TableHead className="text-right">Gross (g)</TableHead>
                 <TableHead className="text-right">Less (g)</TableHead>
@@ -308,11 +319,28 @@ export default function InvoiceNew() {
             </TableHeader>
             <TableBody>
               {rows.length === 0 ? (
-                <TableRow><TableCell colSpan={11} className="h-28 text-center text-muted-foreground">Click "Add item" to start the invoice</TableCell></TableRow>
+                <TableRow><TableCell colSpan={12} className="h-28 text-center text-muted-foreground">Click "Add item" to start the invoice</TableCell></TableRow>
               ) : rows.map((r, idx) => {
                 const c = computeRowAmount(r);
                 return (
                   <TableRow key={r.rowKey}>
+                    <TableCell className="w-12 pr-1">
+                      <div className="flex flex-col items-center gap-0.5">
+                        <span className="text-[10px] text-muted-foreground font-mono leading-none">{idx + 1}</span>
+                        <Button variant="ghost" size="icon"
+                          className="h-5 w-5 text-muted-foreground hover:text-foreground disabled:opacity-20"
+                          disabled={idx === 0}
+                          onClick={() => moveRow(idx, -1)}>
+                          <ChevronUp className="h-3 w-3" />
+                        </Button>
+                        <Button variant="ghost" size="icon"
+                          className="h-5 w-5 text-muted-foreground hover:text-foreground disabled:opacity-20"
+                          disabled={idx === rows.length - 1}
+                          onClick={() => moveRow(idx, 1)}>
+                          <ChevronDown className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <Select value={r.productId} onValueChange={(v) => pickProduct(idx, v)}>
                         <SelectTrigger data-testid={`select-product-${idx}`}><SelectValue placeholder={loadingP ? "Loading..." : "Pick a product"} /></SelectTrigger>

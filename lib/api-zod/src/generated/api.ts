@@ -275,7 +275,7 @@ export const CreateInvoiceBody = zod.object({
   items: zod
     .array(
       zod.object({
-        productId: zod.string(),
+        productId: zod.string().optional(),
         grossWeight: zod.number().optional(),
         lessWeight: zod.number().optional(),
         weightGrams: zod.number(),
@@ -751,7 +751,7 @@ export const CreateEstimateBody = zod.object({
   items: zod
     .array(
       zod.object({
-        productId: zod.string(),
+        productId: zod.string().optional(),
         grossWeight: zod.number().optional(),
         lessWeight: zod.number().optional(),
         weightGrams: zod.number(),

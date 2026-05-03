@@ -1216,7 +1216,7 @@ components:
         makingChargePercent: { type: number }
         stoneCharges: { type: number }
         gstRate: { type: number }
-      required: [productId, weightGrams, ratePerGram, makingChargePercent, stoneCharges, gstRate]
+      required: [weightGrams, ratePerGram, makingChargePercent, stoneCharges, gstRate]
     OldGoldItem:
       type: object
       properties:

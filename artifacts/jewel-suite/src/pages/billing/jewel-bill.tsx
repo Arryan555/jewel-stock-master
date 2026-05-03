@@ -15,7 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, Printer, Save, ArrowLeft } from "lucide-react";
+import { Plus, Trash2, Printer, Save, ArrowLeft, ChevronUp, ChevronDown } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "wouter";
@@ -125,15 +125,21 @@ function rowAmount(row: BillRow, fineMode: boolean) {
 function BillRowComp({
   row,
   idx,
+  total,
   fineMode,
   onChange,
   onRemove,
+  onMoveUp,
+  onMoveDown,
 }: {
   row: BillRow;
   idx: number;
+  total: number;
   fineMode: boolean;
   onChange: (key: string, field: string, value: unknown) => void;
   onRemove: (key: string) => void;
+  onMoveUp: (key: string) => void;
+  onMoveDown: (key: string) => void;
 }) {
   const net = netGrams(row);
   const fine = fineGrams(row);
@@ -145,7 +151,27 @@ function BillRowComp({
 
   return (
     <TableRow>
-      <TableCell className="text-muted-foreground w-8">{idx + 1}</TableCell>
+      <TableCell className="w-14">
+        <div className="flex flex-col items-center gap-0.5">
+          <span className="text-xs text-muted-foreground font-mono leading-none mb-0.5">{idx + 1}</span>
+          <Button
+            variant="ghost" size="icon"
+            className="h-5 w-5 text-muted-foreground hover:text-foreground disabled:opacity-20"
+            disabled={idx === 0}
+            onClick={() => onMoveUp(row.key)}
+          >
+            <ChevronUp className="h-3 w-3" />
+          </Button>
+          <Button
+            variant="ghost" size="icon"
+            className="h-5 w-5 text-muted-foreground hover:text-foreground disabled:opacity-20"
+            disabled={idx === total - 1}
+            onClick={() => onMoveDown(row.key)}
+          >
+            <ChevronDown className="h-3 w-3" />
+          </Button>
+        </div>
+      </TableCell>
       <TableCell className="min-w-[140px]">
         <Input
           value={row.itemName}
@@ -320,6 +346,18 @@ export default function JewelBill() {
     setRows(prev => prev.filter(r => r.key !== key));
   }, []);
 
+  const moveRow = useCallback((key: string, dir: -1 | 1) => {
+    setRows(prev => {
+      const idx = prev.findIndex(r => r.key === key);
+      if (idx === -1) return prev;
+      const target = idx + dir;
+      if (target < 0 || target >= prev.length) return prev;
+      const next = [...prev];
+      [next[idx], next[target]] = [next[target], next[idx]];
+      return next;
+    });
+  }, []);
+
   // ─── Payment CRUD ───────────────────────────────────────────────────────────
 
   const addPayment = () => {
@@ -395,21 +433,22 @@ export default function JewelBill() {
 
     try {
       const res = await create.mutateAsync({
-        customerId,
-        type: billType.code.toLowerCase() as "retail" | "wholesale",
-        date,
-        discount: String(discount),
-        paidAmount: String(totals.cashPaid),
-        notes,
-        items: rows.map(row => ({
-          productId: undefined,
-          description: `${row.itemName} (${row.metal} ${row.purity})`,
-          weightGrams: String(netGrams(row)),
-          ratePerGram: String(row.ratePerGram),
-          makingChargePercent: row.makingType === "%" ? String(row.makingValue) : "0",
-          stoneCharges: "0",
-          gstRate: "0",
-        })),
+        data: {
+          customerId,
+          type: billType.code.toLowerCase() as "retail" | "wholesale",
+          date,
+          discount: discount,
+          paidAmount: totals.cashPaid,
+          notes,
+          items: rows.map(row => ({
+            description: `${row.itemName} (${row.metal} ${row.purity})`,
+            weightGrams: netGrams(row),
+            ratePerGram: row.ratePerGram,
+            makingChargePercent: row.makingType === "%" ? row.makingValue : 0,
+            stoneCharges: 0,
+            gstRate: 0,
+          })),
+        },
       });
 
       qc.invalidateQueries({ queryKey: getListInvoicesQueryKey() });
@@ -535,7 +574,7 @@ export default function JewelBill() {
           <Table>
             <TableHeader className="bg-secondary/30">
               <TableRow>
-                <TableHead className="w-8">#</TableHead>
+                <TableHead className="w-14">#</TableHead>
                 <TableHead>Item Name</TableHead>
                 <TableHead>Metal</TableHead>
                 <TableHead>Purity</TableHead>
@@ -567,9 +606,12 @@ export default function JewelBill() {
                     key={row.key}
                     row={row}
                     idx={idx}
+                    total={rows.length}
                     fineMode={fineMode}
                     onChange={updateRow}
                     onRemove={removeRow}
+                    onMoveUp={(key) => moveRow(key, -1)}
+                    onMoveDown={(key) => moveRow(key, 1)}
                   />
                 ))
               )}

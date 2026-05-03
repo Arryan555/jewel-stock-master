@@ -7,7 +7,7 @@
  */
 
 export interface InvoiceItemInput {
-  productId: string;
+  productId?: string;
   grossWeight?: number;
   lessWeight?: number;
   weightGrams: number;

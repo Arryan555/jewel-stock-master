@@ -16,7 +16,7 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Plus, Trash2, ShoppingCart } from "lucide-react";
+import { Plus, Trash2, ShoppingCart, ChevronUp, ChevronDown } from "lucide-react";
 import { formatCurrency } from "@/lib/format";
 import { useToast } from "@/hooks/use-toast";
 
@@ -91,6 +91,16 @@ export default function PurchaseNew() {
       const c = [...p];
       c[idx] = { ...c[idx], ...patch };
       return c;
+    });
+  }
+
+  function moveRow(idx: number, dir: -1 | 1) {
+    setRows((p) => {
+      const next = [...p];
+      const target = idx + dir;
+      if (target < 0 || target >= next.length) return p;
+      [next[idx], next[target]] = [next[target], next[idx]];
+      return next;
     });
   }
 
@@ -182,6 +192,7 @@ export default function PurchaseNew() {
           <Table className="min-w-[960px]">
             <TableHeader className="bg-secondary/20">
               <TableRow>
+                <TableHead className="w-12">#</TableHead>
                 <TableHead className="min-w-[220px]">Description</TableHead>
                 <TableHead className="min-w-[180px]">Purity</TableHead>
                 <TableHead className="text-right">Gross (g)</TableHead>
@@ -196,7 +207,7 @@ export default function PurchaseNew() {
             <TableBody>
               {rows.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="h-28 text-center text-muted-foreground">
+                  <TableCell colSpan={10} className="h-28 text-center text-muted-foreground">
                     Click "Add item" to start entering purchased goods
                   </TableCell>
                 </TableRow>
@@ -204,6 +215,23 @@ export default function PurchaseNew() {
                 const c = computeRow(r);
                 return (
                   <TableRow key={r.rowKey}>
+                    <TableCell className="w-12 pr-1">
+                      <div className="flex flex-col items-center gap-0.5">
+                        <span className="text-[10px] text-muted-foreground font-mono leading-none">{idx + 1}</span>
+                        <Button variant="ghost" size="icon"
+                          className="h-5 w-5 text-muted-foreground hover:text-foreground disabled:opacity-20"
+                          disabled={idx === 0}
+                          onClick={() => moveRow(idx, -1)}>
+                          <ChevronUp className="h-3 w-3" />
+                        </Button>
+                        <Button variant="ghost" size="icon"
+                          className="h-5 w-5 text-muted-foreground hover:text-foreground disabled:opacity-20"
+                          disabled={idx === rows.length - 1}
+                          onClick={() => moveRow(idx, 1)}>
+                          <ChevronDown className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <Input
                         value={r.description}
