@@ -8,11 +8,19 @@
 
 export interface InvoiceItemInput {
   productId?: string;
+  tagNo?: string;
+  description?: string;
+  metal?: string;
+  purity?: string;
+  tunch?: number;
   grossWeight?: number;
   lessWeight?: number;
   weightGrams: number;
+  fineWeight?: number;
   wastagePercent?: number;
   ratePerGram: number;
+  makingType?: string;
+  makingValue?: number;
   makingChargePercent: number;
   stoneCharges: number;
   gstRate: number;

@@ -1208,11 +1208,19 @@ components:
       type: object
       properties:
         productId: { type: string }
+        tagNo: { type: string }
+        description: { type: string }
+        metal: { type: string }
+        purity: { type: string }
+        tunch: { type: number }
         grossWeight: { type: number }
         lessWeight: { type: number }
         weightGrams: { type: number }
+        fineWeight: { type: number }
         wastagePercent: { type: number }
         ratePerGram: { type: number }
+        makingType: { type: string }
+        makingValue: { type: number }
         makingChargePercent: { type: number }
         stoneCharges: { type: number }
         gstRate: { type: number }
