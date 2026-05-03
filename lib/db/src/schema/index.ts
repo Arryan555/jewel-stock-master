@@ -10,3 +10,6 @@ export * from "./schemes";
 export * from "./settings";
 export * from "./purchases";
 export * from "./amc";
+export * from "./issue_register";
+export * from "./metal_rates";
+export * from "./invoice_payments";

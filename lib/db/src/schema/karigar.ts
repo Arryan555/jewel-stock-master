@@ -50,3 +50,19 @@ export const karigarJobsTable = pgTable("karigar_jobs", {
 });
 
 export type KarigarJob = typeof karigarJobsTable.$inferSelect;
+
+export const karigarTable = pgTable("karigar", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull(),
+  mobile: text("mobile").notNull().default(""),
+  specialization: text("specialization").notNull().default("All Work"),
+  rateType: text("rate_type").notNull().default("Per Gram"),
+  rate: numeric("rate", { precision: 12, scale: 2 }).notNull().default("0"),
+  address: text("address").notNull().default(""),
+  status: text("status").notNull().default("active"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export type KarigarProfile = typeof karigarTable.$inferSelect;

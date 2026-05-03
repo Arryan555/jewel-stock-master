@@ -13,6 +13,8 @@ import settingsRouter from "./settings";
 import reportsRouter from "./reports";
 import purchasesRouter from "./purchases";
 import amcRouter from "./amc";
+import issueRouter from "./issue";
+import ratesRouter from "./rates";
 
 const router: IRouter = Router();
 
@@ -30,5 +32,7 @@ router.use(settingsRouter);
 router.use(reportsRouter);
 router.use(purchasesRouter);
 router.use(amcRouter);
+router.use(issueRouter);
+router.use(ratesRouter);
 
 export default router;

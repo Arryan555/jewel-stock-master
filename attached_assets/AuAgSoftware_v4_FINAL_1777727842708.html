@@ -1,0 +1,2207 @@
+<!DOCTYPE html>
+<html lang="hi" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>AuAg Jewellery Management</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===== THEME VARIABLES ===== */
+:root {
+  --gold:#C9A84C; --gold2:#F0D080; --gold3:#8B6914; --gold4:#FFF3C4;
+  --silver-metal:#9DB4C0;
+  --transition: all 0.25s ease;
+}
+[data-theme="dark"] {
+  --bg:        #0A0A0F;
+  --bg2:       #13131A;
+  --bg3:       #1C1C26;
+  --bg4:       #252530;
+  --border:    #2C2C3A;
+  --text:      #EDE8D8;
+  --text2:     #8A8098;
+  --text3:     #5A5468;
+  --card-shadow: 0 4px 24px rgba(0,0,0,0.5);
+  --top-bg:    #0D0D14;
+}
+[data-theme="light"] {
+  --bg:        #F5F0E8;
+  --bg2:       #FFFFFF;
+  --bg3:       #F0EBE0;
+  --bg4:       #E8E2D4;
+  --border:    #D4C9B0;
+  --text:      #1A1408;
+  --text2:     #6B5C40;
+  --text3:     #9B8C70;
+  --card-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  --top-bg:    #FFFFFF;
+}
+
+/* ===== RESET ===== */
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;transition:background 0.3s,color 0.3s;}
+a{text-decoration:none;color:inherit;}
+input,select,textarea{font-family:inherit;}
+button{font-family:inherit;cursor:pointer;}
+
+/* ===== LOGIN ===== */
+#loginScreen{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:var(--bg);z-index:9999;
+}
+.login-wrap{
+  width:100%;max-width:400px;padding:24px;
+}
+.login-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:20px;
+  padding:40px 36px;box-shadow:0 0 80px rgba(201,168,76,0.12);
+  position:relative;overflow:hidden;
+}
+.login-card::before{
+  content:'';position:absolute;top:-60px;right:-60px;width:180px;height:180px;
+  border-radius:50%;background:radial-gradient(circle,rgba(201,168,76,0.12),transparent 70%);
+}
+.login-logo{font-family:'Cinzel',serif;font-size:2.6rem;font-weight:700;color:var(--gold);letter-spacing:6px;text-align:center;}
+.login-sub{text-align:center;font-size:0.72rem;letter-spacing:3px;color:var(--text2);margin:4px 0 36px;}
+.fi{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+.fi label{font-size:0.72rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);}
+.fi input{background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-size:0.9rem;outline:none;transition:var(--transition);}
+.fi input:focus{border-color:var(--gold);}
+.btn-login{
+  width:100%;padding:14px;margin-top:8px;
+  background:linear-gradient(135deg,var(--gold3),var(--gold));
+  border:none;border-radius:10px;color:#0A0A0F;
+  font-family:'Cinzel',serif;font-size:1rem;font-weight:700;letter-spacing:3px;
+  transition:var(--transition);
+}
+.btn-login:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(201,168,76,0.3);}
+.login-hint{text-align:center;font-size:0.72rem;color:var(--text3);margin-top:14px;}
+.login-err{color:#e05555;font-size:0.8rem;text-align:center;margin-top:10px;min-height:20px;}
+
+/* ===== MAIN LAYOUT ===== */
+#app{display:none;min-height:100vh;}
+
+/* TOP BAR */
+.topbar{
+  position:fixed;top:0;left:0;right:0;height:56px;
+  background:var(--top-bg);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 16px;gap:12px;z-index:200;
+  box-shadow:var(--card-shadow);
+}
+.topbar-logo{font-family:'Cinzel',serif;font-size:1.3rem;color:var(--gold);letter-spacing:3px;white-space:nowrap;}
+.topbar-logo span{font-size:0.6rem;display:block;color:var(--text2);letter-spacing:2px;line-height:1;}
+.topbar-spacer{flex:1;}
+.rate-chip{
+  display:flex;gap:6px;align-items:center;
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:20px;padding:4px 12px;font-size:0.75rem;
+}
+.rate-chip .rc-lbl{color:var(--text2);}
+.rate-chip .rc-val{color:var(--gold);font-weight:600;}
+.topbar-btns{display:flex;gap:6px;}
+.icon-btn{
+  width:36px;height:36px;border-radius:10px;
+  background:var(--bg3);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1rem;transition:var(--transition);color:var(--text2);
+}
+.icon-btn:hover{border-color:var(--gold);color:var(--gold);}
+.menu-btn{display:none;}
+
+/* SIDEBAR */
+.sidebar{
+  position:fixed;top:56px;left:0;bottom:0;width:220px;
+  background:var(--bg2);border-right:1px solid var(--border);
+  overflow-y:auto;z-index:150;
+  transition:transform 0.3s ease;
+}
+.sidebar::-webkit-scrollbar{width:4px;}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.nav-group{padding:16px 12px 4px;font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:var(--text3);}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 14px;border-radius:10px;margin:2px 8px;
+  cursor:pointer;transition:var(--transition);color:var(--text2);font-size:0.85rem;
+  border:1px solid transparent;
+}
+.nav-item:hover{background:rgba(201,168,76,0.07);color:var(--text);}
+.nav-item.active{background:rgba(201,168,76,0.12);color:var(--gold);border-color:rgba(201,168,76,0.2);}
+.nav-icon{font-size:1rem;width:20px;text-align:center;}
+.sidebar-footer{
+  padding:12px;border-top:1px solid var(--border);margin-top:auto;
+}
+.amc-pill{
+  display:inline-flex;align-items:center;gap:6px;padding:5px 10px;
+  border-radius:20px;font-size:0.72rem;font-weight:600;cursor:pointer;
+  transition:var(--transition);margin-top:6px;
+}
+.amc-ok  {background:rgba(76,175,121,0.15);color:#4CAF79;border:1px solid rgba(76,175,121,0.3);}
+.amc-warn{background:rgba(255,165,0,0.15); color:#FFA000;border:1px solid rgba(255,165,0,0.3);}
+.amc-exp {background:rgba(224,85,85,0.15); color:#e05555;border:1px solid rgba(224,85,85,0.3);}
+.amc-none{background:var(--bg3);color:var(--text2);border:1px solid var(--border);}
+
+/* CONTENT */
+.content{margin-left:220px;padding-top:56px;min-height:100vh;}
+.page-body{padding:20px;max-width:1400px;}
+.page{display:none;animation:fadeIn 0.2s ease;}
+.page.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+/* PAGE HEADER */
+.ph{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;}
+.ph-title{font-family:'Cinzel',serif;font-size:1.3rem;color:var(--gold);}
+.ph-sub{font-size:0.75rem;color:var(--text2);margin-top:2px;}
+
+/* STAT CARDS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:20px;}
+.stat{
+  background:var(--bg2);border:1px solid var(--border);border-radius:14px;
+  padding:18px;position:relative;overflow:hidden;box-shadow:var(--card-shadow);
+  cursor:default;transition:var(--transition);
+}
+.stat:hover{border-color:rgba(201,168,76,0.3);transform:translateY(-2px);}
+.stat::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold3),var(--gold));}
+.stat-ico{font-size:1.5rem;margin-bottom:8px;}
+.stat-val{font-size:1.6rem;font-weight:600;color:var(--gold);line-height:1;}
+.stat-lbl{font-size:0.72rem;color:var(--text2);margin-top:4px;letter-spacing:0.5px;}
+
+/* RATE BANNER */
+.rate-banner{
+  background:var(--bg2);border:1px solid var(--border);border-radius:14px;
+  padding:14px 20px;margin-bottom:20px;
+  display:flex;flex-wrap:wrap;gap:20px;align-items:center;
+  box-shadow:var(--card-shadow);
+}
+.rb-item{text-align:center;}
+.rb-lbl{font-size:0.65rem;letter-spacing:2px;text-transform:uppercase;color:var(--text2);}
+.rb-val{font-size:1.3rem;font-weight:600;color:var(--gold);}
+.rb-sub{font-size:0.68rem;color:var(--text3);}
+.rb-div{width:1px;background:var(--border);align-self:stretch;}
+.rb-date{margin-left:auto;font-size:0.72rem;color:var(--text3);}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;box-shadow:var(--card-shadow);}
+.card-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.card-title{font-weight:600;font-size:0.9rem;color:var(--text);}
+.card-body{padding:18px;}
+
+/* FORMS */
+.fg{display:flex;flex-direction:column;gap:6px;}
+.fg label{font-size:0.7rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--text2);}
+.fc{
+  background:var(--bg3);border:1.5px solid var(--border);border-radius:10px;
+  padding:10px 13px;color:var(--text);font-size:0.875rem;outline:none;
+  transition:var(--transition);width:100%;
+}
+.fc:focus{border-color:var(--gold);background:var(--bg2);}
+select.fc option{background:var(--bg2);}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;}
+.span2{grid-column:span 2;}
+.form-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
+
+/* BUTTONS */
+.btn{padding:9px 18px;border-radius:9px;border:none;font-size:0.84rem;font-weight:500;transition:var(--transition);display:inline-flex;align-items:center;gap:6px;}
+.btn:hover{transform:translateY(-1px);}
+.btn-p{background:linear-gradient(135deg,var(--gold3),var(--gold));color:#0A0A0F;font-weight:600;}
+.btn-p:hover{box-shadow:0 4px 16px rgba(201,168,76,0.35);}
+.btn-o{background:transparent;border:1.5px solid var(--gold);color:var(--gold);}
+.btn-o:hover{background:rgba(201,168,76,0.1);}
+.btn-d{background:rgba(224,85,85,0.1);border:1.5px solid rgba(224,85,85,0.4);color:#e05555;}
+.btn-d:hover{background:rgba(224,85,85,0.2);}
+.btn-g{background:rgba(76,175,121,0.1);border:1.5px solid rgba(76,175,121,0.4);color:#4CAF79;}
+.btn-g:hover{background:rgba(76,175,121,0.2);}
+.btn-sm{padding:5px 11px;font-size:0.75rem;border-radius:7px;}
+.btn-xs{padding:3px 8px;font-size:0.7rem;border-radius:6px;}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;border-radius:14px;border:1px solid var(--border);}
+.tbl-search{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+table{width:100%;border-collapse:collapse;font-size:0.83rem;}
+thead th{background:var(--bg3);color:var(--gold);font-weight:500;padding:11px 14px;text-align:left;font-size:0.7rem;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border);}
+tbody td{padding:10px 14px;border-bottom:1px solid var(--border);color:var(--text);}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:rgba(201,168,76,0.03);}
+.td-center{text-align:center;}
+.empty-row td{text-align:center;color:var(--text3);padding:32px!important;}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:0.7rem;font-weight:600;white-space:nowrap;}
+.b-gold{background:rgba(201,168,76,0.15);color:var(--gold);}
+.b-silver{background:rgba(157,180,192,0.15);color:var(--silver-metal);}
+.b-green{background:rgba(76,175,121,0.15);color:#4CAF79;}
+.b-red{background:rgba(224,85,85,0.15);color:#e05555;}
+.b-orange{background:rgba(255,165,0,0.15);color:#FFA000;}
+.b-gray{background:var(--bg4);color:var(--text2);}
+
+/* SECTION DIVIDER */
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;}
+.section-title{font-size:0.72rem;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+
+/* BILL ITEMS TABLE */
+.bill-tbl{border-collapse:collapse;width:100%;font-size:0.8rem;}
+.bill-tbl th{background:var(--bg3);padding:8px 10px;text-align:left;font-size:0.68rem;letter-spacing:1px;color:var(--text2);font-weight:500;border:1px solid var(--border);}
+.bill-tbl td{padding:6px 6px;border:1px solid var(--border);}
+.bill-tbl input,.bill-tbl select{background:var(--bg3);border:1px solid transparent;border-radius:7px;padding:6px 8px;color:var(--text);font-size:0.8rem;width:100%;outline:none;}
+.bill-tbl input:focus,.bill-tbl select:focus{border-color:var(--gold);}
+
+/* AMC SETTINGS */
+.amc-display{
+  background:var(--bg3);border-radius:14px;padding:24px;text-align:center;margin-bottom:20px;
+  border:2px solid var(--border);transition:var(--transition);
+}
+.amc-num{font-size:3.5rem;font-weight:700;line-height:1;font-family:'Cinzel',serif;}
+.amc-status-lbl{font-size:0.85rem;color:var(--text2);margin-top:4px;}
+.amc-bar{
+  height:8px;border-radius:4px;background:var(--bg4);margin-top:14px;overflow:hidden;
+}
+.amc-bar-fill{height:100%;border-radius:4px;transition:width 0.5s ease;}
+
+/* THEME TOGGLE */
+.theme-toggle{
+  display:flex;background:var(--bg3);border:1px solid var(--border);
+  border-radius:20px;padding:3px;gap:2px;
+}
+.tt-opt{
+  padding:5px 12px;border-radius:16px;font-size:0.72rem;cursor:pointer;
+  transition:var(--transition);color:var(--text2);border:none;background:none;
+  display:flex;align-items:center;gap:4px;
+}
+.tt-opt.active{background:var(--gold);color:#0A0A0F;font-weight:600;}
+
+/* MODAL */
+.modal-bg{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);
+  z-index:500;align-items:center;justify-content:center;padding:20px;
+}
+.modal-bg.open{display:flex;}
+.modal{
+  background:var(--bg2);border:1px solid var(--border);border-radius:16px;
+  width:100%;max-width:560px;max-height:90vh;overflow-y:auto;
+  box-shadow:0 24px 80px rgba(0,0,0,0.5);
+}
+.modal-head{padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-title{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;}
+.modal-body{padding:20px;}
+.modal-close{background:none;border:none;color:var(--text2);font-size:1.2rem;cursor:pointer;padding:4px;}
+
+/* PRINT RECEIPT */
+.receipt{
+  background:#fff;color:#000;font-family:'DM Sans',sans-serif;
+  font-size:12px;padding:20px;max-width:380px;margin:0 auto;
+  border-radius:8px;
+}
+.rcpt-head{text-align:center;padding-bottom:12px;border-bottom:2px solid #000;margin-bottom:12px;}
+.rcpt-shop{font-size:15px;font-weight:700;letter-spacing:1px;}
+.rcpt-tbl{width:100%;border-collapse:collapse;margin:10px 0;}
+.rcpt-tbl th,.rcpt-tbl td{border:1px solid #ccc;padding:5px 7px;text-align:left;}
+.rcpt-tbl th{background:#f5f5f5;font-weight:600;font-size:11px;}
+.rcpt-foot{border-top:2px solid #000;margin-top:8px;padding-top:8px;}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:24px;right:24px;z-index:9999;
+  background:var(--bg2);border:1px solid var(--gold);color:var(--text);
+  padding:11px 18px;border-radius:10px;font-size:0.85rem;
+  opacity:0;transition:opacity 0.3s;pointer-events:none;max-width:280px;
+  box-shadow:0 8px 24px rgba(0,0,0,0.3);
+}
+.toast.show{opacity:1;}
+
+/* MOBILE BOTTOM NAV */
+.bottom-nav{
+  display:none;position:fixed;bottom:0;left:0;right:0;height:58px;
+  background:var(--top-bg);border-top:1px solid var(--border);
+  z-index:200;overflow-x:auto;
+}
+.bnav-inner{display:flex;height:100%;min-width:max-content;width:100%;}
+.bnav-item{
+  flex:1;min-width:60px;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:2px;cursor:pointer;transition:var(--transition);
+  padding:4px 6px;
+}
+.bnav-item.active .bnav-ico,.bnav-item.active .bnav-lbl{color:var(--gold);}
+.bnav-ico{font-size:1.1rem;color:var(--text2);}
+.bnav-lbl{font-size:0.58rem;color:var(--text2);letter-spacing:0.3px;white-space:nowrap;}
+
+/* OVERLAY for mobile sidebar */
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:140;}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .sidebar-overlay.open{display:block;}
+  .content{margin-left:0;padding-bottom:66px;}
+  .rate-chip{display:none;}
+  .menu-btn{display:flex;}
+  .bottom-nav{display:flex;}
+  .stats-grid{grid-template-columns:repeat(2,1fr);}
+  .form-grid{grid-template-columns:1fr 1fr;}
+  .span2{grid-column:span 1;}
+  .topbar-logo span{display:none;}
+}
+@media(max-width:480px){
+  .form-grid{grid-template-columns:1fr;}
+  .span2{grid-column:span 1;}
+  .page-body{padding:12px;}
+  .ph-title{font-size:1.1rem;}
+}
+/* BILL TYPE BUTTONS */
+.bill-type-btn{
+  background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;
+  padding:16px 10px;cursor:pointer;transition:var(--transition);text-align:center;
+  color:var(--text);
+}
+.bill-type-btn:hover{border-color:var(--gold);background:rgba(201,168,76,0.1);transform:translateY(-2px);}
+.btb-icon{font-size:1.6rem;margin-bottom:6px;}
+.btb-name{font-size:0.85rem;font-weight:600;color:var(--text);}
+.btb-pfx{font-size:0.65rem;color:var(--text2);margin-top:2px;}
+
+/* FINE TOGGLE */
+.fine-toggle{
+  display:inline-flex;align-items:center;gap:3px;padding:3px 7px;
+  border-radius:6px;font-size:0.65rem;font-weight:600;cursor:pointer;
+  background:rgba(201,168,76,0.15);color:var(--gold);border:1px solid rgba(201,168,76,0.3);
+  white-space:nowrap;
+}
+.fine-toggle.fine-mode{background:rgba(76,175,121,0.15);color:#4CAF79;border-color:rgba(76,175,121,0.3);}
+
+/* MAKING MODE SELECT */
+.making-wrap{display:flex;gap:3px;align-items:center;}
+.making-wrap input{flex:1;min-width:50px;}
+.making-wrap select{width:52px;padding:5px 2px;font-size:0.72rem;}
+
+/* PRINT STYLES */
+@media print {
+  * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body * { visibility: hidden; }
+  #printArea, #printArea * { visibility: visible; }
+  #printArea { position: fixed; left: 0; top: 0; width: 100%; background: white; }
+  .receipt { max-width: 100% !important; box-shadow: none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-logo">AuAg</div>
+      <div class="login-sub">JEWELLERY MANAGEMENT SYSTEM</div>
+      <div class="fi"><label>Username</label><input id="li-user" type="text" value="admin" placeholder="Enter username"></div>
+      <div class="fi"><label>Password</label><input id="li-pass" type="password" placeholder="Enter password" onkeydown="if(event.key==='Enter')login()"></div>
+      <button class="btn-login" onclick="login()">LOGIN</button>
+      <div class="login-err" id="login-err"></div>
+      <div class="login-hint">Default: admin / admin123</div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <button class="icon-btn menu-btn" onclick="toggleSidebar()">☰</button>
+    <div class="topbar-logo">AuAg <span>JEWELLERY</span></div>
+    <div class="rate-chip"><span class="rc-lbl">Au 22K:</span><span class="rc-val" id="tc-au">₹0</span></div>
+    <div class="rate-chip"><span class="rc-lbl">Ag:</span><span class="rc-val" id="tc-ag">₹0</span></div>
+    <div class="topbar-spacer"></div>
+    <div class="theme-toggle">
+      <button class="tt-opt" data-mode="auto" onclick="setTheme('auto')">⚙️ Auto</button>
+      <button class="tt-opt active" data-mode="dark" onclick="setTheme('dark')">🌙 Dark</button>
+      <button class="tt-opt" data-mode="light" onclick="setTheme('light')">☀️ Light</button>
+    </div>
+    <button class="icon-btn" onclick="nav('settings')" title="Settings">⚙️</button>
+    <button class="icon-btn" onclick="logout()" title="Logout">🚪</button>
+  </div>
+
+  <!-- SIDEBAR OVERLAY -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="nav-group">Main</div>
+    <div class="nav-item active" data-pg="dashboard" onclick="nav('dashboard')"><span class="nav-icon">🏠</span>Dashboard</div>
+    <div class="nav-item" data-pg="rates" onclick="nav('rates')"><span class="nav-icon">📈</span>Au/Ag Rates</div>
+    <div class="nav-group">Transactions</div>
+    <div class="nav-item" data-pg="billing" onclick="nav('billing')"><span class="nav-icon">🧾</span>Jewar Bill (JB)</div>
+    <div class="nav-item" data-pg="issue" onclick="nav('issue')"><span class="nav-icon">📤</span>Issue Register</div>
+    <div class="nav-item" data-pg="girvi" onclick="nav('girvi')"><span class="nav-icon">🔐</span>Girvi</div>
+    <div class="nav-group">Records</div>
+    <div class="nav-item" data-pg="stock" onclick="nav('stock')"><span class="nav-icon">📦</span>Stock</div>
+    <div class="nav-item" data-pg="customers" onclick="nav('customers')"><span class="nav-icon">👥</span>Customers</div>
+    <div class="nav-item" data-pg="karigar" onclick="nav('karigar')"><span class="nav-icon">🔨</span>Karigar</div>
+    <div class="nav-group">More</div>
+    <div class="nav-item" data-pg="reports" onclick="nav('reports')"><span class="nav-icon">📊</span>Reports</div>
+    <div class="nav-item" data-pg="settings" onclick="nav('settings')"><span class="nav-icon">⚙️</span>Settings / AMC</div>
+    <div class="sidebar-footer">
+      <div style="font-size:0.8rem;font-weight:600;" id="sb-user">Admin</div>
+      <div style="font-size:0.68rem;color:var(--text2);margin:2px 0;">AMC:</div>
+      <div class="amc-pill amc-none" id="amc-pill" onclick="nav('settings')">⬤ Not Set</div>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+    <div class="page-body">
+
+      <!-- ===== DASHBOARD ===== -->
+      <div id="pg-dashboard" class="page active">
+        <div class="ph">
+          <div><div class="ph-title">Dashboard</div><div class="ph-sub" id="dash-date"></div></div>
+        </div>
+        <div class="rate-banner" id="rateBanner">
+          <div class="rb-item"><div class="rb-lbl">Gold 24K</div><div class="rb-val" id="d-au24">₹0</div><div class="rb-sub">per gram</div></div>
+          <div class="rb-div"></div>
+          <div class="rb-item"><div class="rb-lbl">Gold 22K</div><div class="rb-val" id="d-au22">₹0</div><div class="rb-sub">per gram</div></div>
+          <div class="rb-div"></div>
+          <div class="rb-item"><div class="rb-lbl">Gold 18K</div><div class="rb-val" id="d-au18">₹0</div><div class="rb-sub">per gram</div></div>
+          <div class="rb-div"></div>
+          <div class="rb-item"><div class="rb-lbl">Silver</div><div class="rb-val" id="d-ag">₹0</div><div class="rb-sub">per gram</div></div>
+          <div class="rb-date" id="d-rdate">—</div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat"><div class="stat-ico">📄</div><div class="stat-val" id="d-bills">0</div><div class="stat-lbl">Today's Bills</div></div>
+          <div class="stat"><div class="stat-ico">💰</div><div class="stat-val" id="d-rev">₹0</div><div class="stat-lbl">Today Revenue</div></div>
+          <div class="stat"><div class="stat-ico">👥</div><div class="stat-val" id="d-custs">0</div><div class="stat-lbl">Customers</div></div>
+          <div class="stat"><div class="stat-ico">📦</div><div class="stat-val" id="d-stock">0</div><div class="stat-lbl">Stock Items</div></div>
+          <div class="stat"><div class="stat-ico">🔐</div><div class="stat-val" id="d-girvi">0</div><div class="stat-lbl">Active Girvi</div></div>
+          <div class="stat"><div class="stat-ico">🔨</div><div class="stat-val" id="d-karigar">0</div><div class="stat-lbl">Karigar</div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">🧾 Recent Bills</span></div>
+          <div class="tbl-wrap">
+            <table><thead><tr><th>Bill No</th><th>Customer</th><th>Metal</th><th>Amount</th><th>Date</th><th>Due</th></tr></thead>
+            <tbody id="d-recent-bills"><tr class="empty-row"><td colspan="6">No bills yet</td></tr></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== RATES ===== -->
+      <div id="pg-rates" class="page">
+        <div class="ph"><div><div class="ph-title">Au/Ag Rate Management</div></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:800px;">
+          <div class="section">
+            <div class="section-title">Set Today's Rates</div>
+            <div class="form-grid" style="grid-template-columns:1fr 1fr;">
+              <div class="fg"><label>Gold 24K (₹/g)</label><input class="fc" id="r-au24" type="number" placeholder="e.g. 7200" oninput="autoCalcRates()"></div>
+              <div class="fg"><label>Gold 22K (₹/g)</label><input class="fc" id="r-au22" type="number" placeholder="Auto"></div>
+              <div class="fg"><label>Gold 18K (₹/g)</label><input class="fc" id="r-au18" type="number" placeholder="Auto"></div>
+              <div class="fg"><label>Silver (₹/g)</label><input class="fc" id="r-ag" type="number" placeholder="e.g. 85"></div>
+              <div class="fg"><label>Making Charge (%)</label><input class="fc" id="r-making" type="number" value="10"></div>
+              <div class="fg"><label>Wastage (%)</label><input class="fc" id="r-wastage" type="number" value="5"></div>
+            </div>
+            <div class="form-row">
+              <button class="btn btn-p" onclick="saveRates()">💾 Save Rates</button>
+              <button class="btn btn-o" onclick="autoCalcRates()">🔄 Auto Calc</button>
+            </div>
+          </div>
+          <div class="section">
+            <div class="section-title">Rate History</div>
+            <table style="font-size:0.8rem;width:100%;">
+              <thead><tr><th>Date</th><th>Gold 24K</th><th>Silver</th></tr></thead>
+              <tbody id="r-history"><tr class="empty-row"><td colspan="3">No history</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== BILLING ===== -->
+      <div id="pg-billing" class="page">
+        <div class="ph">
+          <div><div class="ph-title">Jewar Bill</div><div class="ph-sub" id="b-type-badge"></div></div>
+          <button class="btn btn-p" onclick="openBillTypeModal()">+ New Bill</button>
+        </div>
+
+        <!-- BILL TYPE SELECTION MODAL -->
+        <div class="modal-bg" id="billTypeModal">
+          <div class="modal" style="max-width:480px;">
+            <div class="modal-head">
+              <span class="modal-title">📋 Bill Type Select Karein</span>
+              <button class="modal-close" onclick="closeModal('billTypeModal')">✕</button>
+            </div>
+            <div class="modal-body">
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+                <button class="bill-type-btn" onclick="startNewBill('Retail Sale')"><div class="btb-icon">🏪</div><div class="btb-name">Retail Sale</div><div class="btb-pfx">JB-Series</div></button>
+                <button class="bill-type-btn" onclick="startNewBill('Wholesale')"><div class="btb-icon">📦</div><div class="btb-name">Wholesale</div><div class="btb-pfx">WS-Series</div></button>
+                <button class="bill-type-btn" onclick="startNewBill('Gold')"><div class="btb-icon">🥇</div><div class="btb-name">Gold Bill</div><div class="btb-pfx">GD-Series</div></button>
+                <button class="bill-type-btn" onclick="startNewBill('Diamond')"><div class="btb-icon">💎</div><div class="btb-name">Diamond</div><div class="btb-pfx">DM-Series</div></button>
+                <button class="bill-type-btn" onclick="startNewBill('Exchange')"><div class="btb-icon">🔄</div><div class="btb-name">Exchange</div><div class="btb-pfx">EX-Series</div></button>
+                <button class="bill-type-btn" onclick="startNewBill('Repair')"><div class="btb-icon">🔧</div><div class="btb-name">Repair</div><div class="btb-pfx">RP-Series</div></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- QUICK ADD CUSTOMER MODAL -->
+        <div class="modal-bg" id="quickCustModal">
+          <div class="modal" style="max-width:440px;">
+            <div class="modal-head"><span class="modal-title">👤 New Customer Add Karein</span><button class="modal-close" onclick="closeModal('quickCustModal')">✕</button></div>
+            <div class="modal-body">
+              <div class="form-grid" style="grid-template-columns:1fr 1fr;">
+                <div class="fg" style="grid-column:span 2;"><label>Full Name *</label><input class="fc" id="qc-name"></div>
+                <div class="fg"><label>Mobile 1 *</label><input class="fc" id="qc-m1" type="tel"></div>
+                <div class="fg"><label>Mobile 2</label><input class="fc" id="qc-m2" type="tel"></div>
+                <div class="fg" style="grid-column:span 2;"><label>Address</label><input class="fc" id="qc-addr"></div>
+                <div class="fg"><label>PAN No</label><input class="fc" id="qc-pan" style="text-transform:uppercase;"></div>
+                <div class="fg"><label>Aadhaar</label><input class="fc" id="qc-aadhar"></div>
+              </div>
+              <div class="form-row"><button class="btn btn-p" onclick="saveQuickCust()">💾 Save & Select</button><button class="btn btn-o" onclick="closeModal('quickCustModal')">Cancel</button></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="billFormSection" style="display:none;">
+          <div class="section">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+              <div class="section-title" style="margin:0;border:none;padding:0;">Bill Info</div>
+              <span id="b-type-tag" class="badge b-gold" style="font-size:0.75rem;"></span>
+            </div>
+            <div class="form-grid">
+              <div class="fg"><label>Bill No</label><input class="fc" id="b-no" readonly style="color:var(--gold);font-weight:600;"></div>
+              <div class="fg"><label>Date</label><input class="fc" id="b-date" type="date"></div>
+              <div class="fg"><label>Bill Type</label><input class="fc" id="b-type" readonly style="color:var(--gold);"></div>
+              <div class="fg">
+                <label>Customer Name</label>
+                <div style="display:flex;gap:6px;">
+                  <input class="fc" id="b-cname" list="dl-cust" placeholder="Select or type" oninput="fillCustFromBill()" style="flex:1;">
+                  <button class="btn btn-o" style="padding:8px 12px;white-space:nowrap;" onclick="openQuickCust()" title="New Customer">+ New</button>
+                </div>
+                <datalist id="dl-cust"></datalist>
+                <div id="b-cust-info" style="font-size:0.72rem;color:var(--text2);margin-top:4px;"></div>
+              </div>
+              <div class="fg"><label>Mobile</label><input class="fc" id="b-mobile" type="tel"></div>
+            </div>
+          </div>
+
+          <!-- ITEMS SECTION -->
+          <div class="section">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
+              <div class="section-title" style="margin:0;border:none;padding:0;">Items
+                <span style="font-size:0.65rem;color:var(--text2);font-weight:400;margin-left:8px;">💡 Fine toggle: Rate/g ↔ Fine mode</span>
+              </div>
+              <button class="btn btn-g btn-sm" onclick="openQuickItem()">+ Create New Item</button>
+            </div>
+            <div style="overflow-x:auto;">
+              <table class="bill-tbl" id="bill-tbl">
+                <thead>
+                  <tr>
+                    <th style="min-width:26px">#</th>
+                    <th style="min-width:110px">Item Name</th>
+                    <th style="min-width:72px">Metal</th>
+                    <th style="min-width:78px">Purity</th>
+                    <th style="min-width:68px">Gross(g)</th>
+                    <th style="min-width:62px">Less(g)</th>
+                    <th style="min-width:68px">Net(g)</th>
+                    <th style="min-width:108px">Making</th>
+                    <th style="min-width:86px">Rate/g ₹</th>
+                    <th style="min-width:90px">Fine/g 🔄</th>
+                    <th style="min-width:86px">Amount ₹</th>
+                    <th style="min-width:28px"></th>
+                  </tr>
+                </thead>
+                <tbody id="bill-tbody"></tbody>
+              </table>
+            </div>
+            <button class="btn btn-o btn-sm" style="margin-top:10px;" onclick="addBillRow()">+ Add Item Row</button>
+          </div>
+
+          <!-- PAYMENT SECTION -->
+          <div class="section">
+            <div class="section-title">💳 Payment Details — Multiple Payment Add Kar Sakte Hain</div>
+            <div id="pay-rows-wrap">
+              <!-- payment rows injected here -->
+            </div>
+            <button class="btn btn-o btn-sm" onclick="addPayRow()" style="margin-top:8px;">+ Add Payment Mode</button>
+          </div>
+
+          <!-- TOTALS & BALANCE -->
+          <div class="section">
+            <div class="form-grid" style="grid-template-columns:repeat(auto-fill,minmax(128px,1fr));">
+              <div class="fg"><label>Sub Total ₹</label><input class="fc" id="b-sub" readonly></div>
+              <div class="fg"><label>GST %</label><input class="fc" id="b-gstpct" type="number" value="3" oninput="calcBillTotals()"></div>
+              <div class="fg"><label>GST Amt ₹</label><input class="fc" id="b-gstamt" readonly></div>
+              <div class="fg"><label>Discount ₹</label><input class="fc" id="b-disc" type="number" value="0" oninput="calcBillTotals()"></div>
+              <div class="fg"><label>Grand Total ₹</label><input class="fc" id="b-total" readonly style="color:var(--gold);font-weight:700;font-size:1.05rem;"></div>
+              <div class="fg"><label>Total Paid ₹</label><input class="fc" id="b-totalpaid" readonly style="color:#4CAF79;font-weight:600;"></div>
+            </div>
+            <!-- 3-WAY BALANCE -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-top:14px;">
+              <div style="background:rgba(201,168,76,0.08);border:1.5px solid rgba(201,168,76,0.3);border-radius:10px;padding:12px;">
+                <div style="font-size:0.65rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:6px;">💰 Cash Balance ₹</div>
+                <div id="b-bal-cash" style="font-size:1.3rem;font-weight:700;color:var(--gold);">₹0</div>
+              </div>
+              <div style="background:rgba(255,215,0,0.08);border:1.5px solid rgba(255,215,0,0.25);border-radius:10px;padding:12px;">
+                <div style="font-size:0.65rem;letter-spacing:1.5px;text-transform:uppercase;color:#D4AF37;margin-bottom:6px;">🥇 Gold Balance (g)</div>
+                <div id="b-bal-gold" style="font-size:1.3rem;font-weight:700;color:#D4AF37;">0 g</div>
+              </div>
+              <div style="background:rgba(157,180,192,0.08);border:1.5px solid rgba(157,180,192,0.25);border-radius:10px;padding:12px;">
+                <div style="font-size:0.65rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--silver-metal);margin-bottom:6px;">🥈 Silver Balance (g)</div>
+                <div id="b-bal-silver" style="font-size:1.3rem;font-weight:700;color:var(--silver-metal);">0 g</div>
+              </div>
+            </div>
+            <div class="form-row" style="margin-top:16px;">
+              <button class="btn btn-p" id="b-save-btn" onclick="saveBill()">💾 Save Bill</button>
+              <button class="btn btn-o" onclick="previewBill()">🖨️ Preview/Print (A5)</button>
+              <button class="btn btn-d btn-sm" onclick="showBillForm(false)">✕ Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- QUICK ITEM CREATE MODAL -->
+        <div class="modal-bg" id="quickItemModal">
+          <div class="modal" style="max-width:500px;">
+            <div class="modal-head"><span class="modal-title">🏷️ New Item Create Karein</span><button class="modal-close" onclick="closeModal('quickItemModal')">✕</button></div>
+            <div class="modal-body">
+              <div class="form-grid">
+                <div class="fg"><label>Item Name *</label><input class="fc" id="qi-name" placeholder="e.g. Gold Ring"></div>
+                <div class="fg"><label>Category</label><select class="fc" id="qi-cat"><option>Ring</option><option>Necklace</option><option>Earring</option><option>Bracelet</option><option>Bangles</option><option>Chain</option><option>Pendant</option><option>Mangalsutra</option><option>Payal</option><option>Other</option></select></div>
+                <div class="fg"><label>Metal</label><select class="fc" id="qi-metal"><option>Gold</option><option>Silver</option><option>Diamond</option><option>Other</option></select></div>
+                <div class="fg"><label>Purity</label><input class="fc" id="qi-purity" value="22K" placeholder="22K"></div>
+                <div class="fg"><label>Gross Wt (g)</label><input class="fc" id="qi-gross" type="number"></div>
+                <div class="fg"><label>Net Wt (g)</label><input class="fc" id="qi-net" type="number"></div>
+                <div class="fg"><label>Karigar</label><input class="fc" id="qi-karigar" list="dl-karigar"></div>
+                <div class="fg"><label>Rate ₹/g</label><input class="fc" id="qi-rate" type="number"></div>
+                <div class="fg"><label>Tag No</label><input class="fc" id="qi-tag"></div>
+                <div class="fg"><label>Pieces</label><input class="fc" id="qi-pcs" type="number" value="1"></div>
+              </div>
+              <div class="form-row">
+                <button class="btn btn-p" onclick="saveQuickItem(false)">💾 Save to Stock</button>
+                <button class="btn btn-g" onclick="saveQuickItem(true)">💾 Save &amp; Add to Bill</button>
+                <button class="btn btn-o" onclick="closeModal('quickItemModal')">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tbl-wrap">
+          <div class="tbl-search">
+            <input class="fc" style="max-width:220px;padding:7px 12px;" placeholder="🔍 Search bills…" id="bill-search" oninput="filterBills()">
+            <select class="fc" style="max-width:140px;padding:7px 12px;" id="bill-filter-type" onchange="filterBills()">
+              <option value="">All Types</option>
+              <option>Retail Sale</option><option>Wholesale</option><option>Gold</option>
+              <option>Diamond</option><option>Exchange</option><option>Repair</option>
+            </select>
+          </div>
+          <table><thead><tr><th>Bill No</th><th>Date</th><th>Customer</th><th>Type</th><th>Total ₹</th><th>Balance</th><th>Action</th></tr></thead>
+          <tbody id="bills-tbody"><tr class="empty-row"><td colspan="7">No bills yet</td></tr></tbody></table>
+        </div>
+      </div>
+
+      <!-- ===== ISSUE REGISTER ===== -->
+      <div id="pg-issue" class="page">
+        <div class="ph">
+          <div><div class="ph-title">Issue Register</div><div class="ph-sub">Karigar ko maal issue karna</div></div>
+          <button class="btn btn-p" onclick="showIssueForm(true)">+ New Issue</button>
+        </div>
+        <div id="issueFormSection" style="display:none;">
+          <div class="section">
+            <div class="section-title">Issue Details</div>
+            <div class="form-grid">
+              <div class="fg"><label>Issue No</label><input class="fc" id="iss-no" readonly></div>
+              <div class="fg"><label>Issue Date</label><input class="fc" id="iss-date" type="date"></div>
+              <div class="fg"><label>Karigar Name</label><input class="fc" id="iss-karigar" list="dl-karigar" placeholder="Select karigar"><datalist id="dl-karigar"></datalist></div>
+              <div class="fg"><label>Metal</label><select class="fc" id="iss-metal"><option>Gold</option><option>Silver</option><option>Other</option></select></div>
+              <div class="fg"><label>Purity</label><select class="fc" id="iss-purity"><option>24K</option><option>22K</option><option>18K</option><option>Pure</option></select></div>
+              <div class="fg"><label>Gross Wt (g)</label><input class="fc" id="iss-gross" type="number"></div>
+              <div class="fg"><label>Net Wt (g)</label><input class="fc" id="iss-net" type="number"></div>
+              <div class="fg"><label>Rate ₹/g</label><input class="fc" id="iss-rate" type="number"></div>
+              <div class="fg"><label>Item Description</label><input class="fc" id="iss-desc" placeholder="e.g. Ring set of 10"></div>
+              <div class="fg"><label>Return Due Date</label><input class="fc" id="iss-due" type="date"></div>
+              <div class="fg"><label>Remarks</label><input class="fc" id="iss-rem"></div>
+            </div>
+            <div class="form-row">
+              <button class="btn btn-p" onclick="saveIssue()">💾 Save Issue</button>
+              <button class="btn btn-d btn-sm" onclick="showIssueForm(false)">✕ Cancel</button>
+            </div>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table><thead><tr><th>Issue No</th><th>Date</th><th>Karigar</th><th>Metal</th><th>Net Wt</th><th>Rate</th><th>Due Date</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="issue-tbody"><tr class="empty-row"><td colspan="9">No issues yet</td></tr></tbody></table>
+        </div>
+      </div>
+
+      <!-- ===== GIRVI ===== -->
+      <div id="pg-girvi" class="page">
+        <div class="ph">
+          <div><div class="ph-title">Girvi Register</div></div>
+          <button class="btn btn-p" onclick="showGirviForm(true)">+ New Girvi</button>
+        </div>
+        <div id="girviFormSection" style="display:none;">
+          <div class="section">
+            <div class="section-title">Girvi Details</div>
+            <div class="form-grid">
+              <div class="fg"><label>Girvi No</label><input class="fc" id="g-no" readonly></div>
+              <div class="fg"><label>Date</label><input class="fc" id="g-date" type="date"></div>
+              <div class="fg"><label>Customer</label><input class="fc" id="g-cname" list="dl-cust2" placeholder="Customer name"><datalist id="dl-cust2"></datalist></div>
+              <div class="fg"><label>Mobile</label><input class="fc" id="g-mobile" type="tel"></div>
+              <div class="fg"><label>Item Description</label><input class="fc" id="g-item" placeholder="e.g. Gold Chain 22K"></div>
+              <div class="fg"><label>Metal</label><select class="fc" id="g-metal"><option>Gold</option><option>Silver</option><option>Diamond</option><option>Mixed</option></select></div>
+              <div class="fg"><label>Weight (g)</label><input class="fc" id="g-wt" type="number"></div>
+              <div class="fg"><label>Principal Amount ₹</label><input class="fc" id="g-amt" type="number"></div>
+              <div class="fg"><label>Interest % / month</label><input class="fc" id="g-int" type="number" value="2"></div>
+              <div class="fg"><label>Due Date</label><input class="fc" id="g-due" type="date"></div>
+              <div class="fg"><label>Remarks</label><input class="fc" id="g-rem"></div>
+            </div>
+            <div class="form-row">
+              <button class="btn btn-p" onclick="saveGirvi()">💾 Save Girvi</button>
+              <button class="btn btn-d btn-sm" onclick="showGirviForm(false)">✕ Cancel</button>
+            </div>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table><thead><tr><th>Girvi No</th><th>Date</th><th>Customer</th><th>Item</th><th>Wt(g)</th><th>Principal</th><th>Int%</th><th>Due Date</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="girvi-tbody"><tr class="empty-row"><td colspan="10">No girvi records</td></tr></tbody></table>
+        </div>
+      </div>
+
+      <!-- ===== STOCK ===== -->
+      <div id="pg-stock" class="page">
+        <div class="ph">
+          <div><div class="ph-title">Stock Register</div></div>
+          <button class="btn btn-p" onclick="showStockForm(true)">+ Add Stock</button>
+        </div>
+        <div id="stockFormSection" style="display:none;">
+          <div class="section">
+            <div class="section-title">Add Stock Item</div>
+            <div class="form-grid">
+              <div class="fg"><label>Tag / Item No</label><input class="fc" id="s-tag"></div>
+              <div class="fg"><label>Item Name</label><input class="fc" id="s-name" placeholder="e.g. Gold Ring"></div>
+              <div class="fg"><label>Category</label><select class="fc" id="s-cat"><option>Ring</option><option>Necklace</option><option>Earring</option><option>Bracelet</option><option>Bangles</option><option>Chain</option><option>Pendant</option><option>Mangalsutra</option><option>Payal</option><option>Other</option></select></div>
+              <div class="fg"><label>Metal</label><select class="fc" id="s-metal"><option>Gold</option><option>Silver</option><option>Diamond</option><option>Stone</option><option>Other</option></select></div>
+              <div class="fg"><label>Purity</label><select class="fc" id="s-purity"><option>24K</option><option>22K</option><option>18K</option><option>Pure</option><option>Mixed</option></select></div>
+              <div class="fg"><label>Gross Wt (g)</label><input class="fc" id="s-gross" type="number"></div>
+              <div class="fg"><label>Net Wt (g)</label><input class="fc" id="s-net" type="number"></div>
+              <div class="fg"><label>Pieces</label><input class="fc" id="s-pcs" type="number" value="1"></div>
+              <div class="fg"><label>Karigar</label><input class="fc" id="s-karigar" list="dl-karigar2"><datalist id="dl-karigar2"></datalist></div>
+              <div class="fg"><label>Purchase Rate ₹/g</label><input class="fc" id="s-rate" type="number"></div>
+              <div class="fg"><label>Date</label><input class="fc" id="s-date" type="date"></div>
+              <div class="fg"><label>Remarks</label><input class="fc" id="s-rem"></div>
+            </div>
+            <div class="form-row">
+              <button class="btn btn-p" onclick="saveStock()">💾 Save</button>
+              <button class="btn btn-d btn-sm" onclick="showStockForm(false)">✕ Cancel</button>
+            </div>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <div class="tbl-search">
+            <input class="fc" style="max-width:200px;padding:7px 12px;" placeholder="🔍 Search…" id="stock-search" oninput="filterStock()">
+            <select class="fc" style="max-width:120px;padding:7px 12px;" id="stock-metal-f" onchange="filterStock()">
+              <option value="">All Metal</option><option>Gold</option><option>Silver</option><option>Diamond</option>
+            </select>
+          </div>
+          <table><thead><tr><th>Tag</th><th>Item</th><th>Category</th><th>Metal</th><th>Purity</th><th>Gross</th><th>Net</th><th>Karigar</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="stock-tbody"><tr class="empty-row"><td colspan="10">No stock added</td></tr></tbody></table>
+        </div>
+      </div>
+
+      <!-- ===== CUSTOMERS ===== -->
+      <div id="pg-customers" class="page">
+        <div class="ph">
+          <div><div class="ph-title">Customers</div></div>
+          <button class="btn btn-p" onclick="showCustForm(true)">+ Add Customer</button>
+        </div>
+        <div id="custFormSection" style="display:none;">
+          <div class="section">
+            <div class="section-title">Customer Details</div>
+            <div class="form-grid">
+              <div class="fg"><label>Full Name</label><input class="fc" id="c-name"></div>
+              <div class="fg"><label>Mobile 1</label><input class="fc" id="c-m1" type="tel"></div>
+              <div class="fg"><label>Mobile 2</label><input class="fc" id="c-m2" type="tel"></div>
+              <div class="fg"><label>Email</label><input class="fc" id="c-email" type="email"></div>
+              <div class="fg span2"><label>Address</label><input class="fc" id="c-addr"></div>
+              <div class="fg"><label>City</label><input class="fc" id="c-city"></div>
+              <div class="fg"><label>State</label>
+                <select class="fc" id="c-state"><option>Uttar Pradesh</option><option>Bihar</option><option>Delhi</option><option>Maharashtra</option><option>Rajasthan</option><option>Gujarat</option><option>Madhya Pradesh</option><option>Jharkhand</option><option>West Bengal</option><option>Other</option></select>
+              </div>
+              <div class="fg"><label>PAN No</label><input class="fc" id="c-pan" placeholder="ABCDE1234F" style="text-transform:uppercase;"></div>
+              <div class="fg"><label>Aadhaar No</label><input class="fc" id="c-aadhar" placeholder="XXXX XXXX XXXX"></div>
+              <div class="fg"><label>GST No</label><input class="fc" id="c-gst" placeholder="Optional"></div>
+            </div>
+            <div class="form-row">
+              <button class="btn btn-p" onclick="saveCustomer()">💾 Save</button>
+              <button class="btn btn-d btn-sm" onclick="showCustForm(false)">✕ Cancel</button>
+            </div>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <div class="tbl-search">
+            <input class="fc" style="max-width:220px;padding:7px 12px;" placeholder="🔍 Search customers…" id="cust-search" oninput="filterCusts()">
+          </div>
+          <table><thead><tr><th>Name</th><th>Mobile</th><th>City</th><th>PAN</th><th>Bills</th><th>Action</th></tr></thead>
+          <tbody id="cust-tbody"><tr class="empty-row"><td colspan="6">No customers</td></tr></tbody></table>
+        </div>
+      </div>
+
+      <!-- ===== KARIGAR ===== -->
+      <div id="pg-karigar" class="page">
+        <div class="ph">
+          <div><div class="ph-title">Karigar Management</div></div>
+          <button class="btn btn-p" onclick="showKarigarForm(true)">+ Add Karigar</button>
+        </div>
+        <div id="karigarFormSection" style="display:none;">
+          <div class="section">
+            <div class="section-title">Karigar Details</div>
+            <div class="form-grid">
+              <div class="fg"><label>Name</label><input class="fc" id="k-name"></div>
+              <div class="fg"><label>Mobile</label><input class="fc" id="k-mobile" type="tel"></div>
+              <div class="fg"><label>Specialization</label>
+                <select class="fc" id="k-spec"><option>Gold Work</option><option>Silver Work</option><option>Diamond Setting</option><option>Stone Setting</option><option>Engraving</option><option>All Work</option></select>
+              </div>
+              <div class="fg"><label>Rate Type</label>
+                <select class="fc" id="k-rtype"><option>Per Gram</option><option>Per Piece</option><option>Monthly Salary</option></select>
+              </div>
+              <div class="fg"><label>Rate ₹</label><input class="fc" id="k-rate" type="number"></div>
+              <div class="fg"><label>Address</label><input class="fc" id="k-addr"></div>
+            </div>
+            <div class="form-row">
+              <button class="btn btn-p" onclick="saveKarigar()">💾 Save</button>
+              <button class="btn btn-d btn-sm" onclick="showKarigarForm(false)">✕ Cancel</button>
+            </div>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table><thead><tr><th>Name</th><th>Mobile</th><th>Spec</th><th>Rate Type</th><th>Rate</th><th>Items</th><th>Action</th></tr></thead>
+          <tbody id="karigar-tbody"><tr class="empty-row"><td colspan="7">No karigar added</td></tr></tbody></table>
+        </div>
+      </div>
+
+      <!-- ===== REPORTS ===== -->
+      <div id="pg-reports" class="page">
+        <div class="ph"><div><div class="ph-title">Reports</div></div></div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;margin-bottom:20px;">
+          <div class="stat" onclick="genReport('daily')" style="cursor:pointer;"><div class="stat-ico">📅</div><div class="stat-val" style="font-size:1rem;">Daily Sales</div><div class="stat-lbl">Today's bills & revenue</div></div>
+          <div class="stat" onclick="genReport('monthly')" style="cursor:pointer;"><div class="stat-ico">📈</div><div class="stat-val" style="font-size:1rem;">Monthly</div><div class="stat-lbl">Month wise summary</div></div>
+          <div class="stat" onclick="genReport('stock')" style="cursor:pointer;"><div class="stat-ico">📦</div><div class="stat-val" style="font-size:1rem;">Stock</div><div class="stat-lbl">Current inventory</div></div>
+          <div class="stat" onclick="genReport('girvi')" style="cursor:pointer;"><div class="stat-ico">🔐</div><div class="stat-val" style="font-size:1rem;">Girvi</div><div class="stat-lbl">Active & overdue</div></div>
+          <div class="stat" onclick="genReport('ledger')" style="cursor:pointer;"><div class="stat-ico">📒</div><div class="stat-val" style="font-size:1rem;">Ledger</div><div class="stat-lbl">Customer balance</div></div>
+          <div class="stat" onclick="genReport('karigar')" style="cursor:pointer;"><div class="stat-ico">🔨</div><div class="stat-val" style="font-size:1rem;">Karigar</div><div class="stat-lbl">Work summary</div></div>
+          <div class="stat" onclick="genReport('issue')" style="cursor:pointer;"><div class="stat-ico">📤</div><div class="stat-val" style="font-size:1rem;">Issue Reg.</div><div class="stat-lbl">Pending returns</div></div>
+          <div class="stat" onclick="genReport('taxinvoice')" style="cursor:pointer;"><div class="stat-ico">🧾</div><div class="stat-val" style="font-size:1rem;">Tax Invoice</div><div class="stat-lbl">GST invoice list</div></div>
+        </div>
+        <div class="card" id="report-out" style="display:none;">
+          <div class="card-head">
+            <span class="card-title" id="rpt-title"></span>
+            <button class="btn btn-o btn-sm" onclick="printReport()">🖨️ Print</button>
+          </div>
+          <div style="padding:16px;overflow-x:auto;" id="rpt-body"></div>
+        </div>
+      </div>
+
+      <!-- ===== SETTINGS / AMC ===== -->
+      <div id="pg-settings" class="page">
+        <div class="ph"><div><div class="ph-title">Settings & AMC</div></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:900px;">
+
+          <!-- AMC PANEL -->
+          <div class="section" style="border:2px solid rgba(201,168,76,0.3);">
+            <div class="section-title" style="font-size:0.9rem;">🛡️ AMC — Annual Maintenance Contract</div>
+            <div class="amc-display" id="amc-display">
+              <div class="amc-num" id="amc-num" style="color:var(--gold);">—</div>
+              <div class="amc-status-lbl" id="amc-slbl">Set AMC to activate</div>
+              <div class="amc-bar"><div class="amc-bar-fill" id="amc-bar-fill" style="width:0%;background:var(--gold);"></div></div>
+            </div>
+            <div class="form-grid" style="grid-template-columns:1fr 1fr;">
+              <div class="fg"><label>AMC Start Date</label><input class="fc" id="amc-start" type="date" oninput="recalcAmc()"></div>
+              <div class="fg"><label>AMC End Date</label><input class="fc" id="amc-end" type="date" oninput="recalcAmc()"></div>
+              <div class="fg" style="grid-column:span 2;">
+                <label>Quick Plan</label>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <button class="btn btn-o btn-sm" onclick="quickAmc(3)">3 Months</button>
+                  <button class="btn btn-o btn-sm" onclick="quickAmc(6)">6 Months</button>
+                  <button class="btn btn-o btn-sm" onclick="quickAmc(12)">1 Year</button>
+                  <button class="btn btn-o btn-sm" onclick="quickAmc(24)">2 Years</button>
+                </div>
+              </div>
+              <div class="fg"><label>Warn before (days)</label><input class="fc" id="amc-warn" type="number" value="30" oninput="recalcAmc()"></div>
+              <div class="fg"><label>Vendor Name</label><input class="fc" id="amc-vendor" placeholder="Vendor contact"></div>
+              <div class="fg" style="grid-column:span 2;"><label>Note</label><input class="fc" id="amc-note" placeholder="Any note..."></div>
+            </div>
+            <div class="form-row"><button class="btn btn-p" onclick="saveAmc()" style="width:100%;justify-content:center;">💾 Save AMC Settings</button></div>
+          </div>
+
+          <!-- SHOP + SECURITY -->
+          <div>
+            <div class="section">
+              <div class="section-title">🏪 Shop Information</div>
+              <div class="form-grid" style="grid-template-columns:1fr;">
+                <div class="fg"><label>Shop Name</label><input class="fc" id="set-shop" placeholder="e.g. Sharma Jewellers"></div>
+                <div class="fg"><label>Owner Name</label><input class="fc" id="set-owner"></div>
+                <div class="fg"><label>Mobile</label><input class="fc" id="set-mobile" type="tel"></div>
+                <div class="fg"><label>Address</label><input class="fc" id="set-addr"></div>
+                <div class="fg"><label>GSTIN</label><input class="fc" id="set-gst"></div>
+                <div class="fg"><label>PAN</label><input class="fc" id="set-pan"></div>
+              </div>
+              <div class="form-row"><button class="btn btn-p" onclick="saveShop()">💾 Save Info</button></div>
+            </div>
+            <div class="section">
+              <div class="section-title">🔐 Change Password</div>
+              <div class="fg" style="margin-bottom:10px;"><label>Current Password</label><input class="fc" type="password" id="pw-old"></div>
+              <div class="fg" style="margin-bottom:10px;"><label>New Password</label><input class="fc" type="password" id="pw-new"></div>
+              <div class="fg" style="margin-bottom:14px;"><label>Confirm Password</label><input class="fc" type="password" id="pw-con"></div>
+              <button class="btn btn-p" onclick="changePwd()">🔒 Update Password</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV (mobile) -->
+  <div class="bottom-nav">
+    <div class="bnav-inner">
+      <div class="bnav-item active" data-pg="dashboard" onclick="nav('dashboard')"><div class="bnav-ico">🏠</div><div class="bnav-lbl">Home</div></div>
+      <div class="bnav-item" data-pg="billing" onclick="nav('billing')"><div class="bnav-ico">🧾</div><div class="bnav-lbl">Bill</div></div>
+      <div class="bnav-item" data-pg="girvi" onclick="nav('girvi')"><div class="bnav-ico">🔐</div><div class="bnav-lbl">Girvi</div></div>
+      <div class="bnav-item" data-pg="stock" onclick="nav('stock')"><div class="bnav-ico">📦</div><div class="bnav-lbl">Stock</div></div>
+      <div class="bnav-item" data-pg="customers" onclick="nav('customers')"><div class="bnav-ico">👥</div><div class="bnav-lbl">Customers</div></div>
+      <div class="bnav-item" data-pg="karigar" onclick="nav('karigar')"><div class="bnav-ico">🔨</div><div class="bnav-lbl">Karigar</div></div>
+      <div class="bnav-item" data-pg="issue" onclick="nav('issue')"><div class="bnav-ico">📤</div><div class="bnav-lbl">Issue</div></div>
+      <div class="bnav-item" data-pg="rates" onclick="nav('rates')"><div class="bnav-ico">📈</div><div class="bnav-lbl">Rates</div></div>
+      <div class="bnav-item" data-pg="reports" onclick="nav('reports')"><div class="bnav-ico">📊</div><div class="bnav-lbl">Reports</div></div>
+      <div class="bnav-item" data-pg="settings" onclick="nav('settings')"><div class="bnav-ico">⚙️</div><div class="bnav-lbl">Settings</div></div>
+    </div>
+  </div>
+
+</div><!-- end app -->
+
+<!-- PRINT MODAL -->
+<div class="modal-bg" id="printModal">
+  <div class="modal">
+    <div class="modal-head">
+      <span class="modal-title">🖨️ Bill Preview</span>
+      <button class="modal-close" onclick="closeModal('printModal')">✕</button>
+    </div>
+    <div class="modal-body" id="printArea"></div>
+    <div style="padding:0 20px 20px;display:flex;gap:10px;">
+      <button class="btn btn-p" onclick="window.print()">🖨️ Print</button>
+      <button class="btn btn-o" onclick="closeModal('printModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   DATA STORE
+   ============================================================ */
+let D = {
+  auth: { password: 'admin123' },
+  shop: { name:'AuAg Jewellers', owner:'', mobile:'', addr:'', gst:'', pan:'' },
+  rates: { au24:7200, au22:6600, au18:5400, ag:85, making:10, wastage:5, date:'' },
+  rateHistory: [],
+  bills: [], bCtr: 1,
+  issues: [], iCtr: 1,
+  girvi: [], gCtr: 1,
+  stock: [], sCtr: 1,
+  customers: [],
+  karigar: [],
+  amc: { start:'', end:'', warn:30, vendor:'', note:'' },
+  theme: 'dark'
+};
+
+const SAVE = () => localStorage.setItem('auag_v2', JSON.stringify(D));
+const LOAD = () => { try{ const s = localStorage.getItem('auag_v2'); if(s) D = JSON.parse(s); }catch(e){} };
+
+function TODAY(){ return new Date().toISOString().split('T')[0]; }
+function FMT(n){ return (parseFloat(n)||0).toLocaleString('en-IN',{maximumFractionDigits:2}); }
+
+/* ============================================================
+   THEME
+   ============================================================ */
+function setTheme(mode){
+  D.theme = mode;
+  let actual = mode;
+  if(mode === 'auto'){
+    actual = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  document.documentElement.setAttribute('data-theme', actual);
+  document.querySelectorAll('.tt-opt').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+  SAVE();
+}
+function applyTheme(){ setTheme(D.theme||'dark'); }
+
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+  if(D.theme === 'auto') setTheme('auto');
+});
+
+/* ============================================================
+   AUTH
+   ============================================================ */
+function login(){
+  const u = document.getElementById('li-user').value;
+  const p = document.getElementById('li-pass').value;
+  if((u==='admin'||u===D.shop.owner||u===D.shop.name) && p===D.auth.password){
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('sb-user').textContent = u;
+    init();
+  } else {
+    document.getElementById('login-err').textContent = '⚠️ Galat username ya password!';
+  }
+}
+function logout(){
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('li-pass').value = '';
+  document.getElementById('login-err').textContent = '';
+}
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+function nav(id){
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('pg-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.pg===id));
+  document.querySelectorAll('.bnav-item').forEach(n => n.classList.toggle('active', n.dataset.pg===id));
+  closeSidebar();
+
+  // Page-specific load
+  if(id==='dashboard') loadDashboard();
+  if(id==='rates') loadRatesPage();
+  if(id==='billing'){ refreshBillsTable(); refreshCustDatalist(); }
+  if(id==='issue'){ refreshIssueTable(); refreshKarigarDatalist(); }
+  if(id==='girvi'){ refreshGirviTable(); refreshCustDatalist(); }
+  if(id==='stock'){ refreshStockTable(); refreshKarigarDatalist(); }
+  if(id==='customers') refreshCustTable();
+  if(id==='karigar') refreshKarigarTable();
+  if(id==='settings'){ loadSettings(); recalcAmc(); }
+}
+
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+
+/* ============================================================
+   TOAST + MODAL
+   ============================================================ */
+function toast(msg, dur=2800){
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), dur);
+}
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+/* ============================================================
+   INIT
+   ============================================================ */
+function init(){
+  loadDashboard();
+  updateAmcPill();
+  checkAmcAlert();
+  refreshCustDatalist();
+  refreshKarigarDatalist();
+  const shop = D.shop;
+  document.getElementById('tc-au').textContent = '₹'+FMT(D.rates.au22);
+  document.getElementById('tc-ag').textContent = '₹'+FMT(D.rates.ag);
+}
+
+/* ============================================================
+   DASHBOARD
+   ============================================================ */
+function loadDashboard(){
+  const r = D.rates;
+  document.getElementById('d-au24').textContent = '₹'+FMT(r.au24);
+  document.getElementById('d-au22').textContent = '₹'+FMT(r.au22);
+  document.getElementById('d-au18').textContent = '₹'+FMT(r.au18);
+  document.getElementById('d-ag').textContent   = '₹'+FMT(r.ag);
+  document.getElementById('d-rdate').textContent = r.date ? 'Rate Date: '+r.date : '';
+  document.getElementById('dash-date').textContent = new Date().toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+
+  const td = TODAY();
+  const todayBills = D.bills.filter(b=>b.date===td);
+  const rev = todayBills.reduce((s,b)=>s+(parseFloat(b.total)||0),0);
+  document.getElementById('d-bills').textContent   = todayBills.length;
+  document.getElementById('d-rev').textContent     = '₹'+FMT(rev);
+  document.getElementById('d-custs').textContent   = D.customers.length;
+  document.getElementById('d-stock').textContent   = D.stock.filter(s=>s.status==='Available').length;
+  document.getElementById('d-girvi').textContent   = D.girvi.filter(g=>g.status==='Active').length;
+  document.getElementById('d-karigar').textContent = D.karigar.length;
+  document.getElementById('tc-au').textContent = '₹'+FMT(r.au22);
+  document.getElementById('tc-ag').textContent = '₹'+FMT(r.ag);
+
+  const recent = [...D.bills].reverse().slice(0,8);
+  const tbody = document.getElementById('d-recent-bills');
+  if(!recent.length){ tbody.innerHTML='<tr class="empty-row"><td colspan="6">No bills yet</td></tr>'; return; }
+  tbody.innerHTML = recent.map(b=>{
+    const metal = b.items && b.items[0] ? b.items[0].metal : '-';
+    return `<tr>
+      <td>${b.no}</td><td>${b.cname}</td>
+      <td><span class="badge ${metal==='Gold'?'b-gold':'b-silver'}">${metal}</span></td>
+      <td>₹${FMT(b.total)}</td><td>${b.date}</td>
+      <td><span class="badge ${parseFloat(b.bal)>0?'b-red':'b-green'}">₹${FMT(b.bal)}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+/* ============================================================
+   RATES
+   ============================================================ */
+function loadRatesPage(){
+  const r = D.rates;
+  document.getElementById('r-au24').value   = r.au24||'';
+  document.getElementById('r-au22').value   = r.au22||'';
+  document.getElementById('r-au18').value   = r.au18||'';
+  document.getElementById('r-ag').value     = r.ag||'';
+  document.getElementById('r-making').value = r.making||10;
+  document.getElementById('r-wastage').value= r.wastage||5;
+  const tbody = document.getElementById('r-history');
+  const hist = [...D.rateHistory].reverse().slice(0,7);
+  tbody.innerHTML = hist.length ? hist.map(h=>`<tr><td>${h.date}</td><td>₹${h.au24}</td><td>₹${h.ag}</td></tr>`).join('') :
+    '<tr class="empty-row"><td colspan="3">No history</td></tr>';
+}
+function autoCalcRates(){
+  const au24 = parseFloat(document.getElementById('r-au24').value)||0;
+  if(au24){ document.getElementById('r-au22').value = (au24*22/24).toFixed(0); document.getElementById('r-au18').value = (au24*18/24).toFixed(0); }
+}
+function saveRates(){
+  autoCalcRates();
+  D.rateHistory.push({ date:TODAY(), au24:document.getElementById('r-au24').value, ag:document.getElementById('r-ag').value });
+  D.rates = {
+    au24:   parseFloat(document.getElementById('r-au24').value)||0,
+    au22:   parseFloat(document.getElementById('r-au22').value)||0,
+    au18:   parseFloat(document.getElementById('r-au18').value)||0,
+    ag:     parseFloat(document.getElementById('r-ag').value)||0,
+    making: parseFloat(document.getElementById('r-making').value)||10,
+    wastage:parseFloat(document.getElementById('r-wastage').value)||5,
+    date:   TODAY()
+  };
+  SAVE(); toast('✅ Rates saved!'); loadRatesPage(); loadDashboard();
+}
+
+/* ============================================================
+   BILLING — v4 (Edit + MultiPay + 3-Balance + A5 + QuickItem)
+   ============================================================ */
+const BILL_TYPES = {
+  'Retail Sale':{ pfx:'JB', key:'bCtr_JB', color:'b-gold' },
+  'Wholesale':  { pfx:'WS', key:'bCtr_WS', color:'b-silver' },
+  'Gold':       { pfx:'GD', key:'bCtr_GD', color:'b-gold' },
+  'Diamond':    { pfx:'DM', key:'bCtr_DM', color:'b-green' },
+  'Exchange':   { pfx:'EX', key:'bCtr_EX', color:'b-orange' },
+  'Repair':     { pfx:'RP', key:'bCtr_RP', color:'b-gray' }
+};
+const PURITY_FACTOR={ '24K':1,'24':1,'22K':22/24,'22':22/24,'18K':18/24,'18':18/24,
+  '14K':14/24,'14':14/24,'999':1,'925':0.925,'Pure':1,'92.5':0.925 };
+function getPurityFactor(p){
+  if(!p)return 1;
+  const k=Object.keys(PURITY_FACTOR).find(x=>x.toLowerCase()===p.toLowerCase().replace(/\s/g,''));
+  return k?PURITY_FACTOR[k]:(parseFloat(p)/100||1);
+}
+
+let _bRows=[], _bType='Retail Sale', _fineMode={}, _editBillNo=null;
+
+/* -------- OPEN BILL TYPE MODAL -------- */
+function openBillTypeModal(){ document.getElementById('billTypeModal').classList.add('open'); }
+function startNewBill(type){ _bType=type; closeModal('billTypeModal'); _editBillNo=null; showBillForm(true); }
+
+/* -------- SHOW / HIDE FORM -------- */
+function showBillForm(show){
+  document.getElementById('billFormSection').style.display=show?'block':'none';
+  if(show){
+    if(!_editBillNo){
+      const meta=BILL_TYPES[_bType]||BILL_TYPES['Retail Sale'];
+      if(!D[meta.key]) D[meta.key]=1;
+      document.getElementById('b-no').value=meta.pfx+'-'+String(D[meta.key]).padStart(4,'0');
+      document.getElementById('b-date').value=TODAY();
+      document.getElementById('b-gstpct').value=3;
+      document.getElementById('b-disc').value=0;
+      ['b-cname','b-mobile','b-sub','b-gstamt','b-total','b-totalpaid'].forEach(id=>document.getElementById(id).value='');
+      document.getElementById('b-cust-info').textContent='';
+      document.getElementById('bill-tbody').innerHTML='';
+      _bRows=[]; _fineMode={};
+      addBillRow();
+      _payRows=[]; document.getElementById('pay-rows-wrap').innerHTML='';
+      addPayRow();
+    }
+    document.getElementById('b-type').value=_bType;
+    document.getElementById('b-type-tag').textContent=_bType;
+    const meta=BILL_TYPES[_bType]||{color:'b-gold'};
+    document.getElementById('b-type-tag').className='badge '+meta.color;
+    document.getElementById('b-type-badge').textContent='[ '+document.getElementById('b-no').value+' — '+_bType+' ]';
+    document.getElementById('b-save-btn').textContent=_editBillNo?'💾 Update Bill':'💾 Save Bill';
+    refreshCustDatalist();
+    document.getElementById('billFormSection').scrollIntoView({behavior:'smooth'});
+    calcBillTotals();
+  }
+}
+
+/* -------- EDIT BILL -------- */
+function editBill(no){
+  const b=D.bills.find(x=>x.no===no);
+  if(!b){ toast('Bill not found!'); return; }
+  _editBillNo=no; _bType=b.type||'Retail Sale';
+  // reset
+  _bRows=[]; _fineMode={}; _payRows=[];
+  document.getElementById('bill-tbody').innerHTML='';
+  document.getElementById('pay-rows-wrap').innerHTML='';
+
+  document.getElementById('b-no').value=b.no;
+  document.getElementById('b-date').value=b.date;
+  document.getElementById('b-cname').value=b.cname;
+  document.getElementById('b-mobile').value=b.mobile||'';
+  document.getElementById('b-gstpct').value=b.gstpct||3;
+  document.getElementById('b-disc').value=b.disc||0;
+  document.getElementById('b-cust-info').textContent='';
+
+  // Load items
+  (b.items||[]).forEach(it=>{
+    addBillRow();
+    const id=_bRows[_bRows.length-1];
+    setTimeout(()=>{
+      const s=(sel,v)=>{ const el=document.getElementById(sel+id); if(el)el.value=v; };
+      s('bn-',it.name); s('bm-',it.metal); s('bp-',it.purity);
+      s('bg-',it.gross); s('bls-',it.less||0); s('bnet-',it.net);
+      s('bmk-',it.mkVal); s('bmt-',it.mkMode||'%');
+      s('brt-',it.rate); s('bfine-',it.fine||0);
+      s('bam-',it.amount);
+      if(it.fineMode) toggleFineMode(id);
+    },30);
+  });
+
+  // Load payments
+  (b.payments||[]).forEach(p=>{
+    addPayRow();
+    const pid=_payRows[_payRows.length-1];
+    setTimeout(()=>{
+      const pm=document.getElementById('pm-mode-'+pid);
+      const pa=document.getElementById('pm-amt-'+pid);
+      const pg=document.getElementById('pm-gold-'+pid);
+      const pw=document.getElementById('pm-goldwt-wrap-'+pid);
+      if(pm) pm.value=p.mode;
+      if(pa) pa.value=p.amt||0;
+      if(p.goldWt && pg) pg.value=p.goldWt;
+      if((p.mode==='Gold Payment'||p.mode==='Silver Payment')&&pw) pw.style.display='flex';
+      onPayModeChange(pid);
+    },30);
+  });
+  if(!(b.payments||[]).length) addPayRow();
+
+  showBillForm(true);
+}
+
+/* -------- ITEM ROWS -------- */
+function addBillRow(){
+  const id='r'+Date.now()+'_'+Math.random().toString(36).slice(2,5);
+  _bRows.push(id);
+  const tr=document.createElement('tr');
+  tr.id='br-'+id;
+  tr.innerHTML=`
+    <td style="text-align:center;color:var(--text2);font-size:0.78rem;">${_bRows.length}</td>
+    <td><input id="bn-${id}" placeholder="Item name" list="dl-stock-items" style="min-width:100px;" oninput="fillItemFromStock('${id}')">
+      <datalist id="dl-si-${id}"></datalist></td>
+    <td><select id="bm-${id}" onchange="onMetalChange('${id}')"><option>Gold</option><option>Silver</option><option>Diamond</option><option>Other</option></select></td>
+    <td><input id="bp-${id}" list="purity-list-${id}" placeholder="22K" value="22K" style="min-width:58px;" oninput="calcRow('${id}')">
+      <datalist id="purity-list-${id}"><option value="24K"><option value="22K"><option value="18K"><option value="14K"><option value="999"><option value="925"><option value="Pure"></datalist></td>
+    <td><input id="bg-${id}" type="number" placeholder="0" oninput="calcLessNet('${id}')" style="min-width:60px;"></td>
+    <td><input id="bls-${id}" type="number" placeholder="0" oninput="calcLessNet('${id}')" style="min-width:54px;background:rgba(224,85,85,0.05);"></td>
+    <td><input id="bnet-${id}" type="number" placeholder="0" oninput="calcRow('${id}')" style="min-width:56px;font-weight:600;background:rgba(201,168,76,0.05);"></td>
+    <td><div class="making-wrap">
+      <input id="bmk-${id}" type="number" value="${D.rates.making||10}" oninput="calcRow('${id}')" placeholder="10" style="min-width:48px;">
+      <select id="bmt-${id}" onchange="calcRow('${id}')" title="Making Mode"><option value="%">%</option><option value="g">₹/g</option><option value="pc">₹/pc</option></select>
+    </div></td>
+    <td><input id="brt-${id}" type="number" placeholder="Auto" oninput="onRateInput('${id}')" style="min-width:76px;"></td>
+    <td style="text-align:center;"><div style="display:flex;flex-direction:column;gap:3px;align-items:center;">
+      <button class="fine-toggle" id="ftog-${id}" onclick="toggleFineMode('${id}')" title="Rate↔Fine">Rate/g</button>
+      <input id="bfine-${id}" type="number" placeholder="Fine" readonly style="min-width:68px;background:rgba(76,175,121,0.07);font-size:0.78rem;">
+    </div></td>
+    <td><input id="bam-${id}" type="number" readonly style="min-width:76px;font-weight:600;color:var(--gold);"></td>
+    <td><button onclick="removeBRow('${id}')" class="btn btn-d btn-xs">✕</button></td>`;
+  document.getElementById('bill-tbody').appendChild(tr);
+  // populate stock items datalist
+  refreshStockItemsList();
+}
+
+function refreshStockItemsList(){
+  // reusable datalist at top level
+  let dl=document.getElementById('dl-stock-items');
+  if(!dl){ dl=document.createElement('datalist'); dl.id='dl-stock-items'; document.body.appendChild(dl); }
+  dl.innerHTML=D.stock.map(s=>`<option value="${s.name}" data-tag="${s.tag}">`).join('');
+}
+
+function fillItemFromStock(id){
+  const name=document.getElementById('bn-'+id)?.value;
+  const s=D.stock.find(x=>x.name===name);
+  if(s){
+    const s2=(sel,v)=>{ const el=document.getElementById(sel+id); if(el)el.value=v; };
+    s2('bm-',s.metal); s2('bp-',s.purity); s2('bg-',s.gross||0); s2('bnet-',s.net||0);
+    if(s.rate){ s2('brt-',s.rate); }
+    calcLessNet(id);
+  }
+}
+
+function onMetalChange(id){
+  const metal=document.getElementById('bm-'+id)?.value||'Gold';
+  const pEl=document.getElementById('bp-'+id);
+  if(pEl&&!pEl.value){ pEl.value=metal==='Silver'?'925':'22K'; }
+  calcRow(id);
+}
+function calcLessNet(id){
+  const gross=parseFloat(document.getElementById('bg-'+id)?.value)||0;
+  const less=parseFloat(document.getElementById('bls-'+id)?.value)||0;
+  const net=Math.max(0,gross-less);
+  const el=document.getElementById('bnet-'+id);
+  if(el) el.value=net?net.toFixed(3):'';
+  calcRow(id);
+}
+function getMetalRate(metal,purity){
+  if(metal==='Gold'){
+    const f=getPurityFactor(purity);
+    const au24=D.rates.au24||0;
+    if(purity==='24K') return au24;
+    if(purity==='22K') return D.rates.au22||au24*(22/24);
+    return au24*f;
+  }
+  if(metal==='Silver') return D.rates.ag||0;
+  return 0;
+}
+function toggleFineMode(id){
+  _fineMode[id]=!_fineMode[id];
+  const tog=document.getElementById('ftog-'+id);
+  const fineEl=document.getElementById('bfine-'+id);
+  const rateEl=document.getElementById('brt-'+id);
+  if(_fineMode[id]){
+    tog.textContent='Fine/g'; tog.classList.add('fine-mode');
+    fineEl.removeAttribute('readonly'); fineEl.style.color='#4CAF79';
+    rateEl.setAttribute('readonly',''); rateEl.style.opacity='0.5';
+    const net=parseFloat(document.getElementById('bnet-'+id)?.value)||0;
+    const purity=document.getElementById('bp-'+id)?.value||'22K';
+    fineEl.value=(net*getPurityFactor(purity)).toFixed(4);
+  } else {
+    tog.textContent='Rate/g'; tog.classList.remove('fine-mode');
+    fineEl.setAttribute('readonly',''); fineEl.style.color='';
+    rateEl.removeAttribute('readonly'); rateEl.style.opacity='';
+  }
+  calcRow(id);
+}
+function onRateInput(id){ calcRow(id); }
+function calcRow(id){
+  const metal=document.getElementById('bm-'+id)?.value||'Gold';
+  const purity=document.getElementById('bp-'+id)?.value||'22K';
+  const net=parseFloat(document.getElementById('bnet-'+id)?.value)||0;
+  const mk=parseFloat(document.getElementById('bmk-'+id)?.value)||0;
+  const mkMode=document.getElementById('bmt-'+id)?.value||'%';
+  const isFine=!!_fineMode[id];
+  let rate=0, fineWt=net*getPurityFactor(purity), metalAmt=0, makingAmt=0;
+
+  if(isFine){
+    const fi=parseFloat(document.getElementById('bfine-'+id)?.value)||fineWt;
+    rate=D.rates.au24||getMetalRate(metal,purity);
+    metalAmt=fi*rate;
+    const rEl=document.getElementById('brt-'+id); if(rEl) rEl.value=rate;
+    const fEl=document.getElementById('bfine-'+id); if(fEl&&document.activeElement!==fEl) fEl.value=fineWt.toFixed(4);
+  } else {
+    rate=parseFloat(document.getElementById('brt-'+id)?.value)||0;
+    if(!rate){ rate=getMetalRate(metal,purity); const rEl=document.getElementById('brt-'+id); if(rEl) rEl.value=rate?rate.toFixed(2):''; }
+    metalAmt=net*rate;
+    const fEl=document.getElementById('bfine-'+id); if(fEl) fEl.value=fineWt?fineWt.toFixed(4):'';
+  }
+  if(mkMode==='%') makingAmt=metalAmt*mk/100;
+  else if(mkMode==='g') makingAmt=net*mk;
+  else if(mkMode==='pc') makingAmt=mk;
+  const amt=metalAmt+makingAmt;
+  const aEl=document.getElementById('bam-'+id); if(aEl) aEl.value=amt?amt.toFixed(2):'';
+  calcBillTotals();
+}
+function removeBRow(id){
+  document.getElementById('br-'+id)?.remove();
+  _bRows=_bRows.filter(r=>r!==id); delete _fineMode[id];
+  calcBillTotals();
+}
+
+/* -------- PAYMENT ROWS -------- */
+let _payRows=[];
+const PAY_MODES=['Cash','UPI','NEFT','Card','Cheque','Credit','Gold Payment','Silver Payment'];
+
+function addPayRow(){
+  const pid='p'+Date.now()+'_'+Math.random().toString(36).slice(2,5);
+  _payRows.push(pid);
+  const wrap=document.getElementById('pay-rows-wrap');
+  const div=document.createElement('div');
+  div.id='pay-row-'+pid;
+  div.style.cssText='display:flex;gap:8px;align-items:center;margin-bottom:8px;flex-wrap:wrap;';
+  div.innerHTML=`
+    <select id="pm-mode-${pid}" class="fc" style="min-width:140px;padding:8px 10px;" onchange="onPayModeChange('${pid}')">
+      ${PAY_MODES.map(m=>`<option>${m}</option>`).join('')}
+    </select>
+    <input id="pm-amt-${pid}" type="number" class="fc" placeholder="Amount ₹" style="max-width:130px;padding:8px 10px;" oninput="calcBillBalance()">
+    <div id="pm-goldwt-wrap-${pid}" style="display:none;gap:6px;align-items:center;">
+      <input id="pm-gold-${pid}" type="number" class="fc" placeholder="Weight (g)" style="max-width:110px;padding:8px 10px;" oninput="calcBillBalance()">
+      <span style="font-size:0.75rem;color:var(--text2);">g</span>
+    </div>
+    <button onclick="removePayRow('${pid}')" class="btn btn-d btn-xs">✕</button>`;
+  wrap.appendChild(div);
+}
+function onPayModeChange(pid){
+  const mode=document.getElementById('pm-mode-'+pid)?.value||'';
+  const gWrap=document.getElementById('pm-goldwt-wrap-'+pid);
+  const amtEl=document.getElementById('pm-amt-'+pid);
+  const isMetalPay=mode==='Gold Payment'||mode==='Silver Payment';
+  if(gWrap) gWrap.style.display=isMetalPay?'flex':'none';
+  if(isMetalPay&&amtEl) amtEl.placeholder='Value ₹ (optional)';
+  else if(amtEl) amtEl.placeholder='Amount ₹';
+  calcBillBalance();
+}
+function removePayRow(pid){
+  document.getElementById('pay-row-'+pid)?.remove();
+  _payRows=_payRows.filter(p=>p!==pid);
+  calcBillBalance();
+}
+function getPayments(){
+  return _payRows.map(pid=>({
+    mode: document.getElementById('pm-mode-'+pid)?.value||'Cash',
+    amt:  parseFloat(document.getElementById('pm-amt-'+pid)?.value)||0,
+    goldWt: parseFloat(document.getElementById('pm-gold-'+pid)?.value)||0
+  }));
+}
+
+/* -------- TOTALS & 3-WAY BALANCE -------- */
+function calcBillTotals(){
+  const sub=_bRows.reduce((s,id)=>s+(parseFloat(document.getElementById('bam-'+id)?.value)||0),0);
+  document.getElementById('b-sub').value=sub.toFixed(2);
+  const gp=parseFloat(document.getElementById('b-gstpct').value)||0;
+  const ga=sub*gp/100;
+  document.getElementById('b-gstamt').value=ga.toFixed(2);
+  const disc=parseFloat(document.getElementById('b-disc').value)||0;
+  document.getElementById('b-total').value=(sub+ga-disc).toFixed(2);
+  calcBillBalance();
+}
+function calcBillBalance(){
+  const total=parseFloat(document.getElementById('b-total').value)||0;
+  const pays=getPayments();
+
+  // Cash equivalent total paid
+  let cashPaid=0, goldPaidWt=0, silverPaidWt=0, goldPaidVal=0, silverPaidVal=0;
+  pays.forEach(p=>{
+    if(p.mode==='Gold Payment'){
+      goldPaidWt+=p.goldWt||0;
+      goldPaidVal+=p.amt||0; // cash value if given
+    } else if(p.mode==='Silver Payment'){
+      silverPaidWt+=p.goldWt||0;
+      silverPaidVal+=p.amt||0;
+    } else {
+      cashPaid+=p.amt||0;
+    }
+  });
+
+  // Compute gold/silver value in ₹
+  const goldValPaid=goldPaidVal||(goldPaidWt*(D.rates.au22||D.rates.au24||0));
+  const silverValPaid=silverPaidVal||(silverPaidWt*(D.rates.ag||0));
+  const totalPaid=cashPaid+goldValPaid+silverValPaid;
+
+  document.getElementById('b-totalpaid').value=totalPaid.toFixed(2);
+
+  // Remaining due
+  const remaining=Math.max(0,total-totalPaid);
+
+  // For items: check if any item is gold/silver — compute metal due
+  let totalGoldWt=0, totalSilverWt=0;
+  _bRows.forEach(id=>{
+    const metal=document.getElementById('bm-'+id)?.value||'';
+    const net=parseFloat(document.getElementById('bnet-'+id)?.value)||0;
+    if(metal==='Gold') totalGoldWt+=net;
+    if(metal==='Silver') totalSilverWt+=net;
+  });
+
+  // Balance: cash remaining, gold weight balance, silver weight balance
+  const cashBal=remaining; // simplification: remaining after all payments
+  // Gold balance in grams = item gold weight - gold paid weight
+  const goldBal=Math.max(0,totalGoldWt-goldPaidWt);
+  const silverBal=Math.max(0,totalSilverWt-silverPaidWt);
+
+  // Display
+  const cashEl=document.getElementById('b-bal-cash');
+  const goldEl=document.getElementById('b-bal-gold');
+  const silvEl=document.getElementById('b-bal-silver');
+  if(cashEl){ cashEl.textContent='₹'+FMT(cashBal); cashEl.style.color=cashBal>0?'#e05555':'#4CAF79'; }
+  if(goldEl){ goldEl.textContent=goldBal.toFixed(3)+' g'; goldEl.style.color=goldBal>0?'#D4AF37':'#4CAF79'; }
+  if(silvEl){ silvEl.textContent=silverBal.toFixed(3)+' g'; silvEl.style.color=silverBal>0?'var(--silver-metal)':'#4CAF79'; }
+}
+
+/* -------- FILL CUSTOMER -------- */
+function fillCustFromBill(){
+  const name=document.getElementById('b-cname').value;
+  const c=D.customers.find(x=>x.name===name);
+  if(c){
+    document.getElementById('b-mobile').value=c.m1||'';
+    document.getElementById('b-cust-info').textContent=[c.city,c.pan?'PAN:'+c.pan:''].filter(Boolean).join(' | ');
+  }
+}
+
+/* -------- QUICK CUSTOMER -------- */
+function openQuickCust(){ document.getElementById('quickCustModal').classList.add('open'); }
+function saveQuickCust(){
+  const name=document.getElementById('qc-name').value.trim();
+  const m1=document.getElementById('qc-m1').value.trim();
+  if(!name){ toast('⚠️ Name required!'); return; }
+  if(D.customers.find(c=>c.name===name)){
+    closeModal('quickCustModal'); document.getElementById('b-cname').value=name; fillCustFromBill(); return;
+  }
+  D.customers.push({ name, m1, m2:document.getElementById('qc-m2').value,
+    addr:document.getElementById('qc-addr').value, pan:document.getElementById('qc-pan').value,
+    aadhar:document.getElementById('qc-aadhar').value, city:'', state:'', email:'', gst:'' });
+  SAVE(); refreshCustDatalist();
+  document.getElementById('b-cname').value=name;
+  document.getElementById('b-mobile').value=m1;
+  ['qc-name','qc-m1','qc-m2','qc-addr','qc-pan','qc-aadhar'].forEach(id=>document.getElementById(id).value='');
+  closeModal('quickCustModal'); toast('✅ Customer added!');
+}
+
+/* -------- QUICK ITEM -------- */
+function openQuickItem(){ document.getElementById('quickItemModal').classList.add('open'); }
+function saveQuickItem(addToBill){
+  const name=document.getElementById('qi-name').value.trim();
+  if(!name){ toast('⚠️ Item name required!'); return; }
+  const item={
+    tag: document.getElementById('qi-tag').value||'IT-'+String(D.sCtr||1).padStart(4,'0'),
+    name, cat:document.getElementById('qi-cat').value,
+    metal:document.getElementById('qi-metal').value, purity:document.getElementById('qi-purity').value,
+    gross:document.getElementById('qi-gross').value, net:document.getElementById('qi-net').value,
+    pcs:document.getElementById('qi-pcs').value, karigar:document.getElementById('qi-karigar').value,
+    rate:document.getElementById('qi-rate').value, date:TODAY(), rem:'', status:'Available'
+  };
+  D.stock.push(item); if(!D.sCtr)D.sCtr=1; D.sCtr++;
+  SAVE(); refreshStockItemsList(); toast('✅ Item saved to stock!');
+  if(addToBill){
+    addBillRow();
+    const id=_bRows[_bRows.length-1];
+    setTimeout(()=>{
+      document.getElementById('bn-'+id).value=item.name;
+      document.getElementById('bm-'+id).value=item.metal;
+      document.getElementById('bp-'+id).value=item.purity;
+      document.getElementById('bg-'+id).value=item.gross||0;
+      document.getElementById('bnet-'+id).value=item.net||0;
+      if(item.rate) document.getElementById('brt-'+id).value=item.rate;
+      calcRow(id);
+    },50);
+  }
+  ['qi-name','qi-tag','qi-gross','qi-net','qi-rate'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('qi-pcs').value=1;
+  closeModal('quickItemModal');
+}
+
+/* -------- SAVE BILL -------- */
+function saveBill(){
+  const cname=document.getElementById('b-cname').value;
+  if(!cname){ toast('⚠️ Customer name required!'); return; }
+  const items=_bRows.map(id=>({
+    name:document.getElementById('bn-'+id)?.value||'',
+    metal:document.getElementById('bm-'+id)?.value||'',
+    purity:document.getElementById('bp-'+id)?.value||'',
+    gross:document.getElementById('bg-'+id)?.value||0,
+    less:document.getElementById('bls-'+id)?.value||0,
+    net:document.getElementById('bnet-'+id)?.value||0,
+    mkVal:document.getElementById('bmk-'+id)?.value||0,
+    mkMode:document.getElementById('bmt-'+id)?.value||'%',
+    rate:document.getElementById('brt-'+id)?.value||0,
+    fine:document.getElementById('bfine-'+id)?.value||0,
+    amount:document.getElementById('bam-'+id)?.value||0,
+    fineMode:!!_fineMode[id]
+  }));
+  const payments=getPayments();
+  const bill={
+    no:document.getElementById('b-no').value, date:document.getElementById('b-date').value,
+    cname, mobile:document.getElementById('b-mobile').value, type:_bType,
+    items, payments,
+    sub:document.getElementById('b-sub').value,
+    gstpct:document.getElementById('b-gstpct').value, gstamt:document.getElementById('b-gstamt').value,
+    disc:document.getElementById('b-disc').value, total:document.getElementById('b-total').value,
+    totalpaid:document.getElementById('b-totalpaid').value,
+    balCash:document.getElementById('b-bal-cash').textContent,
+    balGold:document.getElementById('b-bal-gold').textContent,
+    balSilver:document.getElementById('b-bal-silver').textContent
+  };
+  if(_editBillNo){
+    const idx=D.bills.findIndex(b=>b.no===_editBillNo);
+    if(idx>=0) D.bills[idx]=bill;
+    toast('✅ Bill updated: '+bill.no);
+  } else {
+    D.bills.push(bill);
+    const meta=BILL_TYPES[_bType]||BILL_TYPES['Retail Sale'];
+    D[meta.key]=(D[meta.key]||1)+1;
+    toast('✅ Bill saved: '+bill.no);
+  }
+  _fineMode={}; _editBillNo=null;
+  SAVE(); showBillForm(false); refreshBillsTable(); loadDashboard();
+}
+
+function refreshBillsTable(){
+  const tbody=document.getElementById('bills-tbody');
+  if(!D.bills.length){ tbody.innerHTML='<tr class="empty-row"><td colspan="7">No bills yet</td></tr>'; return; }
+  const meta=(t)=>BILL_TYPES[t]||{color:'b-gray'};
+  tbody.innerHTML=[...D.bills].reverse().map(b=>`<tr>
+    <td style="font-weight:700;color:var(--gold);">${b.no}</td><td>${b.date}</td><td>${b.cname}</td>
+    <td><span class="badge ${meta(b.type).color}">${b.type}</span></td>
+    <td>₹${FMT(b.total)}</td>
+    <td><span class="badge ${b.balCash&&b.balCash!=='₹0'&&!b.balCash?.includes('-')?'b-red':'b-green'}">${b.balCash||'₹0'}</span></td>
+    <td style="white-space:nowrap;">
+      <button class="btn btn-o btn-xs" onclick="editBill('${b.no}')">✏️</button>
+      <button class="btn btn-o btn-xs" onclick="printBillNo('${b.no}')">🖨️</button>
+      <button class="btn btn-d btn-xs" onclick="delBill('${b.no}')">🗑️</button>
+    </td>
+  </tr>`).join('');
+}
+function filterBills(){
+  const q=document.getElementById('bill-search').value.toLowerCase();
+  const t=document.getElementById('bill-filter-type').value;
+  document.getElementById('bills-tbody').querySelectorAll('tr').forEach(r=>{
+    const txt=r.textContent.toLowerCase();
+    r.style.display=txt.includes(q)&&(!t||txt.includes(t.toLowerCase()))?'':'none';
+  });
+}
+function delBill(no){ if(confirm('Delete bill '+no+'?')){ D.bills=D.bills.filter(b=>b.no!==no); SAVE(); refreshBillsTable(); toast('Deleted!'); } }
+
+/* -------- PREVIEW / PRINT -------- */
+function previewBill(){
+  const pays=getPayments();
+  const b={
+    no:document.getElementById('b-no').value, date:document.getElementById('b-date').value,
+    cname:document.getElementById('b-cname').value||'Customer',
+    mobile:document.getElementById('b-mobile').value, type:_bType,
+    payments:pays,
+    items:_bRows.map(id=>({
+      name:document.getElementById('bn-'+id)?.value||'-',
+      metal:document.getElementById('bm-'+id)?.value||'',
+      purity:document.getElementById('bp-'+id)?.value||'',
+      gross:document.getElementById('bg-'+id)?.value||0,
+      less:document.getElementById('bls-'+id)?.value||0,
+      net:document.getElementById('bnet-'+id)?.value||0,
+      mkVal:document.getElementById('bmk-'+id)?.value||0,
+      mkMode:document.getElementById('bmt-'+id)?.value||'%',
+      rate:document.getElementById('brt-'+id)?.value||0,
+      fine:document.getElementById('bfine-'+id)?.value||0,
+      amount:document.getElementById('bam-'+id)?.value||0,
+      fineMode:!!_fineMode[id]
+    })),
+    sub:document.getElementById('b-sub').value,
+    gstpct:document.getElementById('b-gstpct').value,
+    gstamt:document.getElementById('b-gstamt').value,
+    disc:document.getElementById('b-disc').value,
+    total:document.getElementById('b-total').value,
+    totalpaid:document.getElementById('b-totalpaid').value,
+    balCash:document.getElementById('b-bal-cash').textContent,
+    balGold:document.getElementById('b-bal-gold').textContent,
+    balSilver:document.getElementById('b-bal-silver').textContent
+  };
+  renderReceipt(b);
+}
+function printBillNo(no){ const b=D.bills.find(x=>x.no===no); if(b) renderReceipt(b); }
+
+function renderReceipt(b){
+  const s=D.shop;
+  const isGST=parseFloat(b.gstpct)>0;
+  const hasDisc=parseFloat(b.disc||0)>0;
+  const hasFine=(b.items||[]).some(it=>parseFloat(it.fine)>0);
+  const hasLess=(b.items||[]).some(it=>parseFloat(it.less)>0);
+  const pays=b.payments||[];
+  const mkLabel=(it)=>{
+    if(it.mkMode==='%') return it.mkVal+'%';
+    if(it.mkMode==='g') return '₹'+it.mkVal+'/g';
+    if(it.mkMode==='pc') return '₹'+it.mkVal+'/pc';
+    return it.mkVal||'';
+  };
+  const payHTML=pays.map(p=>`<tr>
+    <td style="padding:2px 6px;">${p.mode}</td>
+    <td style="text-align:right;padding:2px 6px;">${p.goldWt?p.goldWt+'g':''}</td>
+    <td style="text-align:right;padding:2px 6px;">${p.amt?'₹'+FMT(p.amt):''}</td>
+  </tr>`).join('');
+
+  document.getElementById('printArea').innerHTML=`
+  <style>
+    @page { size: A5; margin: 8mm; }
+    @media print {
+      html,body { margin:0; padding:0; }
+      .receipt { width:100%; max-width:100% !important; padding:0 !important; box-shadow:none !important; }
+      .no-print { display:none !important; }
+    }
+    body { font-family: 'DM Sans', Arial, sans-serif; }
+    .a5-wrap { width:148mm; min-height:210mm; margin:0 auto; font-size:10pt; background:#fff; color:#000; padding:8mm; box-sizing:border-box; }
+    .shop-name { font-family:'Cinzel',serif; font-size:18pt; font-weight:900; letter-spacing:3px; text-align:center; color:#8B6914; }
+    .shop-sub  { font-size:9pt; text-align:center; color:#555; margin-bottom:4pt; }
+    .bill-label{ font-size:12pt; font-weight:800; text-align:center; background:#8B6914; color:#fff; padding:4pt 0; margin:6pt 0; letter-spacing:2px; border-radius:3pt; }
+    .info-row  { display:flex; justify-content:space-between; font-size:9pt; margin-bottom:6pt; }
+    .info-row b{ font-weight:700; }
+    .cust-name { font-size:11pt; font-weight:800; }
+    table.items{ width:100%; border-collapse:collapse; margin:6pt 0; font-size:8.5pt; }
+    table.items th{ background:#C9A84C; color:#fff; font-weight:700; padding:3pt 4pt; text-align:center; border:0.5pt solid #8B6914; font-size:8pt; letter-spacing:0.5px; }
+    table.items td{ border:0.5pt solid #ccc; padding:3pt 4pt; vertical-align:middle; }
+    table.items td.num{ text-align:right; font-weight:600; }
+    table.items td.cen{ text-align:center; }
+    .tot-table  { width:45%; margin-left:auto; font-size:9pt; border-collapse:collapse; }
+    .tot-table td{ padding:2pt 4pt; }
+    .tot-table .grand{ font-size:11pt; font-weight:900; background:#8B6914; color:#fff; border-radius:2pt; padding:3pt 6pt; }
+    .pay-table  { width:55%; font-size:8.5pt; border-collapse:collapse; border:0.5pt solid #ddd; }
+    .pay-table th{ background:#f0ebe0; padding:2pt 5pt; text-align:left; font-weight:700; }
+    .pay-table td{ padding:2pt 5pt; border-bottom:0.5pt solid #eee; }
+    .bal-box   { display:flex; gap:6pt; margin-top:6pt; flex-wrap:wrap; }
+    .bal-item  { flex:1; min-width:80pt; border-radius:4pt; padding:5pt 7pt; text-align:center; }
+    .bal-cash  { background:#FFF3C4; border:1pt solid #C9A84C; }
+    .bal-gold  { background:#FFF8E1; border:1pt solid #D4AF37; }
+    .bal-silv  { background:#F0F8FF; border:1pt solid #9DB4C0; }
+    .bal-lbl   { font-size:7pt; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:#666; }
+    .bal-val   { font-size:12pt; font-weight:900; margin-top:2pt; }
+    .footer    { text-align:center; font-size:8pt; color:#888; margin-top:8pt; padding-top:5pt; border-top:1pt dashed #ccc; }
+    .divider   { border:none; border-top:1pt solid #ccc; margin:5pt 0; }
+  </style>
+  <div class="receipt a5-wrap">
+    <div class="shop-name">${s.name||'AuAg Jewellers'}</div>
+    <div class="shop-sub">${s.addr||''}${s.mobile?' &nbsp;•&nbsp; 📞 '+s.mobile:''}${s.gst?' &nbsp;•&nbsp; GST: '+s.gst:''}</div>
+    <hr class="divider">
+    <div class="bill-label">${isGST?'TAX INVOICE':'SALE BILL'} &nbsp;•&nbsp; ${b.type||'Retail Sale'}</div>
+    <div class="info-row">
+      <div><b>Bill No:</b> ${b.no}<br><b>Date:</b> ${b.date}</div>
+      <div style="text-align:right;"><span class="cust-name">${b.cname}</span>${b.mobile?'<br>📞 '+b.mobile:''}</div>
+    </div>
+    <table class="items">
+      <thead><tr>
+        <th>#</th><th style="text-align:left;">Item</th><th>Metal/Pur</th>
+        ${hasLess?'<th>Gross</th><th>Less</th>':''}
+        <th>Net(g)</th>${hasFine?'<th>Fine(g)</th>':''}
+        <th>Rate/g</th><th>Making</th><th>Amount</th>
+      </tr></thead>
+      <tbody>
+      ${(b.items||[]).map((it,i)=>`<tr>
+        <td class="cen">${i+1}</td>
+        <td style="font-weight:600;">${it.name}</td>
+        <td class="cen" style="white-space:nowrap;font-weight:600;">${it.metal} ${it.purity}</td>
+        ${hasLess?`<td class="cen">${it.gross||0}</td><td class="cen">${it.less||0}</td>`:''}
+        <td class="cen" style="font-weight:700;">${it.net}g</td>
+        ${hasFine?`<td class="cen">${parseFloat(it.fine||0).toFixed(3)}</td>`:''}
+        <td class="num">₹${FMT(it.rate)}</td>
+        <td class="cen">${mkLabel(it)}</td>
+        <td class="num" style="font-size:9.5pt;font-weight:800;">₹${FMT(it.amount)}</td>
+      </tr>`).join('')}
+      </tbody>
+    </table>
+    <hr class="divider">
+    <div style="display:flex;justify-content:space-between;gap:10pt;flex-wrap:wrap;margin-top:4pt;">
+      ${pays.length?`<div>
+        <div style="font-size:8pt;font-weight:700;margin-bottom:3pt;letter-spacing:1px;text-transform:uppercase;color:#555;">Payment Details</div>
+        <table class="pay-table"><thead><tr><th>Mode</th><th>Weight</th><th>Amount</th></tr></thead>
+        <tbody>${payHTML}</tbody></table>
+      </div>`:''}
+      <div>
+        <table class="tot-table">
+          <tr><td>Sub Total</td><td style="text-align:right;font-weight:600;">₹${FMT(b.sub)}</td></tr>
+          ${isGST?`<tr><td>GST (${b.gstpct}%)</td><td style="text-align:right;">₹${FMT(b.gstamt)}</td></tr>`:''}
+          ${hasDisc?`<tr><td>Discount</td><td style="text-align:right;">-₹${FMT(b.disc)}</td></tr>`:''}
+          <tr><td colspan="2" style="padding:2pt;"></td></tr>
+          <tr><td colspan="2"><div class="grand">Grand Total &nbsp; ₹${FMT(b.total)}</div></td></tr>
+          ${b.totalpaid&&parseFloat(b.totalpaid)>0?`<tr><td>Paid</td><td style="text-align:right;color:green;font-weight:700;">₹${FMT(b.totalpaid)}</td></tr>`:''}
+        </table>
+      </div>
+    </div>
+    <div class="bal-box">
+      <div class="bal-item bal-cash"><div class="bal-lbl">💰 Cash Balance</div><div class="bal-val" style="color:${b.balCash&&b.balCash!=='₹0'?'#C0392B':'#27AE60'};">${b.balCash||'₹0'}</div></div>
+      <div class="bal-item bal-gold"><div class="bal-lbl">🥇 Gold Balance</div><div class="bal-val" style="color:#8B6914;">${b.balGold||'0 g'}</div></div>
+      <div class="bal-item bal-silv"><div class="bal-lbl">🥈 Silver Balance</div><div class="bal-val" style="color:#5D8AA8;">${b.balSilver||'0 g'}</div></div>
+    </div>
+    <div class="footer">Thank you for your purchase! &nbsp;•&nbsp; ${s.name||'AuAg Jewellers'}${s.mobile?' &nbsp;•&nbsp; '+s.mobile:''}</div>
+  </div>`;
+  document.getElementById('printModal').classList.add('open');
+}
+/* ============================================================
+   ISSUE REGISTER
+   ============================================================ */
+function showIssueForm(show){
+  document.getElementById('issueFormSection').style.display = show ? 'block' : 'none';
+  if(show){
+    document.getElementById('iss-no').value = 'ISS-'+String(D.iCtr).padStart(4,'0');
+    document.getElementById('iss-date').value = TODAY();
+  }
+}
+function saveIssue(){
+  const karigar = document.getElementById('iss-karigar').value;
+  if(!karigar){ toast('⚠️ Karigar name required!'); return; }
+  D.issues.push({
+    no:document.getElementById('iss-no').value, date:document.getElementById('iss-date').value,
+    karigar, metal:document.getElementById('iss-metal').value, purity:document.getElementById('iss-purity').value,
+    gross:document.getElementById('iss-gross').value, net:document.getElementById('iss-net').value,
+    rate:document.getElementById('iss-rate').value, desc:document.getElementById('iss-desc').value,
+    due:document.getElementById('iss-due').value, rem:document.getElementById('iss-rem').value, status:'Pending'
+  });
+  D.iCtr++; SAVE(); toast('✅ Issue saved!'); showIssueForm(false); refreshIssueTable();
+}
+function refreshIssueTable(){
+  const tbody = document.getElementById('issue-tbody');
+  if(!D.issues.length){ tbody.innerHTML='<tr class="empty-row"><td colspan="9">No issues yet</td></tr>'; return; }
+  const td = TODAY();
+  tbody.innerHTML = [...D.issues].reverse().map((iss,i)=>{
+    const overdue = iss.due && iss.due < td && iss.status==='Pending';
+    const cls = iss.status==='Returned' ? 'b-gray' : overdue ? 'b-red' : 'b-orange';
+    const lbl = iss.status==='Returned' ? 'Returned' : overdue ? 'Overdue' : 'Pending';
+    const idx = D.issues.length-1-i;
+    return `<tr><td>${iss.no}</td><td>${iss.date}</td><td>${iss.karigar}</td>
+      <td><span class="badge b-gold">${iss.metal} ${iss.purity}</span></td>
+      <td>${iss.net}g</td><td>₹${FMT(iss.rate)}</td><td>${iss.due||'-'}</td>
+      <td><span class="badge ${cls}">${lbl}</span></td>
+      <td>${iss.status==='Pending'?`<button class="btn btn-g btn-xs" onclick="returnIssue(${idx})">✓ Return</button>`:''}
+      <button class="btn btn-d btn-xs" onclick="delIssue(${idx})">🗑️</button></td></tr>`;
+  }).join('');
+}
+function returnIssue(i){ D.issues[i].status='Returned'; SAVE(); refreshIssueTable(); toast('✅ Returned!'); }
+function delIssue(i){ if(confirm('Delete?')){ D.issues.splice(i,1); SAVE(); refreshIssueTable(); } }
+
+/* ============================================================
+   GIRVI
+   ============================================================ */
+function showGirviForm(show){
+  document.getElementById('girviFormSection').style.display = show ? 'block' : 'none';
+  if(show){
+    document.getElementById('g-no').value = 'GR-'+String(D.gCtr).padStart(4,'0');
+    document.getElementById('g-date').value = TODAY();
+    document.getElementById('g-no')._new = true;
+  }
+}
+function saveGirvi(){
+  const cname = document.getElementById('g-cname').value;
+  if(!cname){ toast('⚠️ Customer required!'); return; }
+  D.girvi.push({
+    no:document.getElementById('g-no').value, date:document.getElementById('g-date').value,
+    cname, mobile:document.getElementById('g-mobile').value,
+    item:document.getElementById('g-item').value, metal:document.getElementById('g-metal').value,
+    wt:document.getElementById('g-wt').value, amt:document.getElementById('g-amt').value,
+    int:document.getElementById('g-int').value, due:document.getElementById('g-due').value,
+    rem:document.getElementById('g-rem').value, status:'Active'
+  });
+  D.gCtr++; SAVE(); toast('✅ Girvi saved!'); showGirviForm(false); refreshGirviTable(); loadDashboard();
+}
+function refreshGirviTable(){
+  const tbody = document.getElementById('girvi-tbody');
+  if(!D.girvi.length){ tbody.innerHTML='<tr class="empty-row"><td colspan="10">No girvi records</td></tr>'; return; }
+  const td = TODAY();
+  tbody.innerHTML = [...D.girvi].reverse().map((g,i)=>{
+    const overdue = g.due && g.due < td && g.status==='Active';
+    const cls = g.status==='Released'?'b-gray':overdue?'b-red':'b-green';
+    const lbl = g.status==='Released'?'Released':overdue?'Overdue':'Active';
+    const idx = D.girvi.length-1-i;
+    return `<tr><td>${g.no}</td><td>${g.date}</td><td>${g.cname}</td><td>${g.item}</td>
+      <td>${g.wt}g</td><td>₹${FMT(g.amt)}</td><td>${g.int}%</td><td>${g.due||'-'}</td>
+      <td><span class="badge ${cls}">${lbl}</span></td>
+      <td>${g.status==='Active'?`<button class="btn btn-g btn-xs" onclick="releaseGirvi(${idx})">✓ Release</button>`:''}
+      <button class="btn btn-d btn-xs" onclick="delGirvi(${idx})">🗑️</button></td></tr>`;
+  }).join('');
+}
+function releaseGirvi(i){ D.girvi[i].status='Released'; SAVE(); refreshGirviTable(); loadDashboard(); toast('✅ Released!'); }
+function delGirvi(i){ if(confirm('Delete?')){ D.girvi.splice(i,1); SAVE(); refreshGirviTable(); } }
+
+/* ============================================================
+   STOCK
+   ============================================================ */
+function showStockForm(show){
+  document.getElementById('stockFormSection').style.display = show ? 'block' : 'none';
+  if(show){
+    document.getElementById('s-tag').value = 'AU-'+String(D.sCtr).padStart(4,'0');
+    document.getElementById('s-date').value = TODAY();
+  }
+}
+function saveStock(){
+  const name = document.getElementById('s-name').value;
+  if(!name){ toast('⚠️ Item name required!'); return; }
+  D.stock.push({
+    tag:document.getElementById('s-tag').value, name,
+    cat:document.getElementById('s-cat').value, metal:document.getElementById('s-metal').value,
+    purity:document.getElementById('s-purity').value, gross:document.getElementById('s-gross').value,
+    net:document.getElementById('s-net').value, pcs:document.getElementById('s-pcs').value,
+    karigar:document.getElementById('s-karigar').value, rate:document.getElementById('s-rate').value,
+    date:document.getElementById('s-date').value, rem:document.getElementById('s-rem').value, status:'Available'
+  });
+  D.sCtr++; SAVE(); toast('✅ Stock added!'); showStockForm(false); refreshStockTable(); loadDashboard();
+}
+function refreshStockTable(){
+  const tbody = document.getElementById('stock-tbody');
+  if(!D.stock.length){ tbody.innerHTML='<tr class="empty-row"><td colspan="10">No stock added</td></tr>'; return; }
+  tbody.innerHTML = [...D.stock].reverse().map((s,ri)=>{
+    const i = D.stock.length-1-ri;
+    return `<tr><td>${s.tag}</td><td>${s.name}</td><td>${s.cat}</td>
+      <td><span class="badge ${s.metal==='Gold'?'b-gold':'b-silver'}">${s.metal}</span></td>
+      <td>${s.purity}</td><td>${s.gross}g</td><td>${s.net}g</td><td>${s.karigar||'-'}</td>
+      <td><span class="badge ${s.status==='Available'?'b-green':'b-gray'}">${s.status}</span></td>
+      <td><button class="btn btn-d btn-xs" onclick="delStock(${i})">🗑️</button></td></tr>`;
+  }).join('');
+}
+function filterStock(){
+  const q = document.getElementById('stock-search').value.toLowerCase();
+  const m = document.getElementById('stock-metal-f').value;
+  document.getElementById('stock-tbody').querySelectorAll('tr').forEach(r=>{
+    const t = r.textContent.toLowerCase();
+    r.style.display = t.includes(q) && (!m||t.includes(m.toLowerCase())) ? '' : 'none';
+  });
+}
+function delStock(i){ if(confirm('Delete?')){ D.stock.splice(i,1); SAVE(); refreshStockTable(); loadDashboard(); } }
+
+/* ============================================================
+   CUSTOMERS
+   ============================================================ */
+function showCustForm(show){ document.getElementById('custFormSection').style.display=show?'block':'none'; }
+function saveCustomer(){
+  const name = document.getElementById('c-name').value;
+  if(!name){ toast('⚠️ Name required!'); return; }
+  D.customers.push({ name, m1:document.getElementById('c-m1').value, m2:document.getElementById('c-m2').value,
+    email:document.getElementById('c-email').value, addr:document.getElementById('c-addr').value,
+    city:document.getElementById('c-city').value, state:document.getElementById('c-state').value,
+    pan:document.getElementById('c-pan').value, aadhar:document.getElementById('c-aadhar').value,
+    gst:document.getElementById('c-gst').value });
+  SAVE(); toast('✅ Customer saved!'); showCustForm(false); refreshCustTable(); refreshCustDatalist();
+  ['c-name','c-m1','c-m2','c-email','c-addr','c-city','c-pan','c-aadhar','c-gst'].forEach(id=>document.getElementById(id).value='');
+}
+function refreshCustTable(){
+  const tbody = document.getElementById('cust-tbody');
+  if(!D.customers.length){ tbody.innerHTML='<tr class="empty-row"><td colspan="6">No customers</td></tr>'; return; }
+  tbody.innerHTML = D.customers.map((c,i)=>`<tr>
+    <td>${c.name}</td><td>${c.m1}</td><td>${c.city||'-'}</td><td>${c.pan||'-'}</td>
+    <td>${D.bills.filter(b=>b.cname===c.name).length}</td>
+    <td><button class="btn btn-d btn-xs" onclick="delCust(${i})">🗑️</button></td></tr>`).join('');
+}
+function filterCusts(){
+  const q = document.getElementById('cust-search').value.toLowerCase();
+  document.getElementById('cust-tbody').querySelectorAll('tr').forEach(r=>{ r.style.display=r.textContent.toLowerCase().includes(q)?'':'none'; });
+}
+function delCust(i){ if(confirm('Delete?')){ D.customers.splice(i,1); SAVE(); refreshCustTable(); refreshCustDatalist(); } }
+function refreshCustDatalist(){
+  ['dl-cust','dl-cust2'].forEach(id=>{
+    const dl = document.getElementById(id);
+    if(dl) dl.innerHTML = D.customers.map(c=>`<option value="${c.name}">`).join('');
+  });
+}
+
+/* ============================================================
+   KARIGAR
+   ============================================================ */
+function showKarigarForm(show){ document.getElementById('karigarFormSection').style.display=show?'block':'none'; }
+function saveKarigar(){
+  const name = document.getElementById('k-name').value;
+  if(!name){ toast('⚠️ Name required!'); return; }
+  D.karigar.push({ name, mobile:document.getElementById('k-mobile').value, spec:document.getElementById('k-spec').value,
+    rtype:document.getElementById('k-rtype').value, rate:document.getElementById('k-rate').value,
+    addr:document.getElementById('k-addr').value, status:'Active' });
+  SAVE(); toast('✅ Karigar saved!'); showKarigarForm(false); refreshKarigarTable(); refreshKarigarDatalist();
+  ['k-name','k-mobile','k-rate','k-addr'].forEach(id=>document.getElementById(id).value='');
+}
+function refreshKarigarTable(){
+  const tbody = document.getElementById('karigar-tbody');
+  if(!D.karigar.length){ tbody.innerHTML='<tr class="empty-row"><td colspan="7">No karigar added</td></tr>'; return; }
+  tbody.innerHTML = D.karigar.map((k,i)=>`<tr>
+    <td>${k.name}</td><td>${k.mobile}</td><td>${k.spec}</td><td>${k.rtype}</td><td>₹${k.rate}</td>
+    <td>${D.stock.filter(s=>s.karigar===k.name).length}</td>
+    <td><button class="btn btn-d btn-xs" onclick="delKarigar(${i})">🗑️</button></td></tr>`).join('');
+}
+function delKarigar(i){ if(confirm('Delete?')){ D.karigar.splice(i,1); SAVE(); refreshKarigarTable(); } }
+function refreshKarigarDatalist(){
+  ['dl-karigar','dl-karigar2'].forEach(id=>{
+    const dl = document.getElementById(id);
+    if(dl) dl.innerHTML = D.karigar.map(k=>`<option value="${k.name}">`).join('');
+  });
+}
+
+/* ============================================================
+   REPORTS
+   ============================================================ */
+function genReport(type){
+  const outDiv = document.getElementById('report-out');
+  const titleEl = document.getElementById('rpt-title');
+  const bodyEl  = document.getElementById('rpt-body');
+  outDiv.style.display='block';
+  const td = TODAY();
+
+  const TBLHD = (cols) => `<table style="width:100%;font-size:0.82rem;border-collapse:collapse;"><thead><tr>${cols.map(c=>`<th style="background:var(--bg3);padding:8px;text-align:left;border-bottom:1px solid var(--border);font-size:0.7rem;color:var(--gold);">${c}</th>`).join('')}</tr></thead><tbody>`;
+  const TBLFT = () => '</tbody></table>';
+  const TR = (cells) => `<tr>${cells.map(c=>`<td style="padding:8px;border-bottom:1px solid var(--border);">${c}</td>`).join('')}</tr>`;
+  const EMPTY = (cols) => `<tr><td colspan="${cols}" style="text-align:center;color:var(--text2);padding:24px;">No data</td></tr>`;
+
+  if(type==='daily'){
+    titleEl.textContent = '📅 Daily Sales Report — '+td;
+    const bills = D.bills.filter(b=>b.date===td);
+    const total = bills.reduce((s,b)=>s+parseFloat(b.total||0),0);
+    bodyEl.innerHTML = `<div style="margin-bottom:12px;font-size:0.85rem;color:var(--text2);">
+      Bills: <b style="color:var(--gold)">${bills.length}</b> &nbsp;|&nbsp; Revenue: <b style="color:var(--gold)">₹${FMT(total)}</b></div>
+      ${TBLHD(['Bill No','Customer','Type','Amount','Payment'])}
+      ${bills.length ? bills.map(b=>TR([b.no,b.cname,b.type,'₹'+FMT(b.total),b.pay])).join('') : EMPTY(5)}
+      ${TBLFT()}`;
+  }
+  else if(type==='monthly'){
+    titleEl.textContent = '📈 Monthly Summary';
+    const map = {};
+    D.bills.forEach(b=>{ const m=b.date.slice(0,7); if(!map[m])map[m]={cnt:0,tot:0}; map[m].cnt++; map[m].tot+=parseFloat(b.total||0); });
+    const months = Object.keys(map).sort().reverse();
+    bodyEl.innerHTML = TBLHD(['Month','Bills','Revenue']) +
+      (months.length ? months.map(m=>TR([m,map[m].cnt,'₹'+FMT(map[m].tot)])).join('') : EMPTY(3)) + TBLFT();
+  }
+  else if(type==='stock'){
+    titleEl.textContent = '📦 Stock Report';
+    const avail = D.stock.filter(s=>s.status==='Available');
+    bodyEl.innerHTML = `<div style="margin-bottom:12px;font-size:0.85rem;color:var(--text2);">Available: <b style="color:var(--gold)">${avail.length} items</b></div>` +
+      TBLHD(['Tag','Item','Metal','Purity','Gross','Net','Karigar']) +
+      (avail.length ? avail.map(s=>TR([s.tag,s.name,s.metal,s.purity,s.gross+'g',s.net+'g',s.karigar||'-'])).join('') : EMPTY(7)) + TBLFT();
+  }
+  else if(type==='girvi'){
+    titleEl.textContent = '🔐 Girvi Report';
+    const active = D.girvi.filter(g=>g.status==='Active');
+    const total = active.reduce((s,g)=>s+parseFloat(g.amt||0),0);
+    bodyEl.innerHTML = `<div style="margin-bottom:12px;font-size:0.85rem;color:var(--text2);">Active: <b style="color:var(--gold)">${active.length}</b> | Total: <b style="color:var(--gold)">₹${FMT(total)}</b></div>` +
+      TBLHD(['Girvi No','Customer','Item','Principal','Int%','Due Date']) +
+      (active.length ? active.map(g=>TR([g.no,g.cname,g.item,'₹'+FMT(g.amt),g.int+'%',g.due||'-'])).join('') : EMPTY(6)) + TBLFT();
+  }
+  else if(type==='ledger'){
+    titleEl.textContent = '📒 Customer Ledger';
+    bodyEl.innerHTML = TBLHD(['Customer','Mobile','Bills','Total','Balance']) +
+      (D.customers.length ? D.customers.map(c=>{
+        const bills=D.bills.filter(b=>b.cname===c.name);
+        const tot=bills.reduce((s,b)=>s+parseFloat(b.total||0),0);
+        const bal=bills.reduce((s,b)=>s+parseFloat(b.bal||0),0);
+        return TR([c.name,c.m1||'-',bills.length,'₹'+FMT(tot),`<span style="color:${bal>0?'#e05555':'#4CAF79'}">₹${FMT(bal)}</span>`]);
+      }).join('') : EMPTY(5)) + TBLFT();
+  }
+  else if(type==='karigar'){
+    titleEl.textContent = '🔨 Karigar Report';
+    bodyEl.innerHTML = TBLHD(['Name','Mobile','Spec','Rate','Items Made']) +
+      (D.karigar.length ? D.karigar.map(k=>TR([k.name,k.mobile,k.spec,'₹'+k.rate+'/'+k.rtype,D.stock.filter(s=>s.karigar===k.name).length])).join('') : EMPTY(5)) + TBLFT();
+  }
+  else if(type==='issue'){
+    titleEl.textContent = '📤 Issue Register — Pending';
+    const pending = D.issues.filter(i=>i.status==='Pending');
+    bodyEl.innerHTML = TBLHD(['Issue No','Karigar','Metal','Net Wt','Rate','Due Date']) +
+      (pending.length ? pending.map(iss=>TR([iss.no,iss.karigar,iss.metal+' '+iss.purity,iss.net+'g','₹'+FMT(iss.rate),iss.due||'-'])).join('') : EMPTY(6)) + TBLFT();
+  }
+  else if(type==='taxinvoice'){
+    titleEl.textContent = '🧾 Tax Invoice / GST Bills';
+    bodyEl.innerHTML = TBLHD(['Bill No','Date','Customer','Sub Total','GST','Total']) +
+      (D.bills.length ? [...D.bills].reverse().map(b=>TR([b.no,b.date,b.cname,'₹'+FMT(b.sub),'₹'+FMT(b.gstamt),'₹'+FMT(b.total)])).join('') : EMPTY(6)) + TBLFT();
+  }
+  outDiv.scrollIntoView({behavior:'smooth'});
+}
+function printReport(){
+  const content = document.getElementById('rpt-body').innerHTML;
+  const w = window.open('','_blank');
+  w.document.write(`<html><head><title>Report</title>
+  <style>body{font-family:Arial;font-size:12px;} table{width:100%;border-collapse:collapse;} th,td{border:1px solid #ccc;padding:6px;text-align:left;} th{background:#f5f5f5;}</style>
+  </head><body><h2>${document.getElementById('rpt-title').textContent}</h2>${content}</body></html>`);
+  w.print();
+}
+
+/* ============================================================
+   AMC SETTINGS
+   ============================================================ */
+function loadSettings(){
+  const s = D.shop; const a = D.amc;
+  document.getElementById('set-shop').value   = s.name||'';
+  document.getElementById('set-owner').value  = s.owner||'';
+  document.getElementById('set-mobile').value = s.mobile||'';
+  document.getElementById('set-addr').value   = s.addr||'';
+  document.getElementById('set-gst').value    = s.gst||'';
+  document.getElementById('set-pan').value    = s.pan||'';
+  document.getElementById('amc-start').value  = a.start||'';
+  document.getElementById('amc-end').value    = a.end||'';
+  document.getElementById('amc-warn').value   = a.warn||30;
+  document.getElementById('amc-vendor').value = a.vendor||'';
+  document.getElementById('amc-note').value   = a.note||'';
+}
+function quickAmc(months){
+  const start = TODAY();
+  document.getElementById('amc-start').value = start;
+  const d = new Date(start); d.setMonth(d.getMonth()+months);
+  document.getElementById('amc-end').value = d.toISOString().split('T')[0];
+  recalcAmc();
+}
+function recalcAmc(){
+  const end = document.getElementById('amc-end')?.value;
+  const start = document.getElementById('amc-start')?.value;
+  const warn = parseInt(document.getElementById('amc-warn')?.value)||30;
+  const numEl = document.getElementById('amc-num');
+  const lblEl = document.getElementById('amc-slbl');
+  const dispEl= document.getElementById('amc-display');
+  const barEl = document.getElementById('amc-bar-fill');
+  if(!end){ numEl.textContent='—'; lblEl.textContent='Set AMC end date to activate'; return; }
+  const now = new Date(); now.setHours(0,0,0,0);
+  const endD = new Date(end);
+  const diff = Math.ceil((endD-now)/(1000*86400));
+  const totalDays = start ? Math.ceil((endD-new Date(start))/(1000*86400)) : 365;
+  const pct = Math.max(0,Math.min(100,(diff/totalDays)*100));
+  if(diff<0){
+    numEl.textContent='EXPIRED'; numEl.style.color='#e05555';
+    lblEl.textContent='AMC expired on '+end+'. Please renew!';
+    dispEl.style.borderColor='rgba(224,85,85,0.5)';
+    barEl.style.background='#e05555'; barEl.style.width='100%';
+  } else if(diff<=warn){
+    numEl.textContent=diff; numEl.style.color='#FFA000';
+    lblEl.textContent='Days remaining — Expiring soon!';
+    dispEl.style.borderColor='rgba(255,165,0,0.5)';
+    barEl.style.background='#FFA000'; barEl.style.width=pct+'%';
+  } else {
+    numEl.textContent=diff; numEl.style.color='#4CAF79';
+    lblEl.textContent='Days remaining — AMC Active';
+    dispEl.style.borderColor='rgba(76,175,121,0.5)';
+    barEl.style.background='#4CAF79'; barEl.style.width=pct+'%';
+  }
+}
+function saveAmc(){
+  D.amc = {
+    start:  document.getElementById('amc-start').value,
+    end:    document.getElementById('amc-end').value,
+    warn:   parseInt(document.getElementById('amc-warn').value)||30,
+    vendor: document.getElementById('amc-vendor').value,
+    note:   document.getElementById('amc-note').value
+  };
+  SAVE(); toast('✅ AMC saved!'); updateAmcPill();
+}
+function updateAmcPill(){
+  const pill = document.getElementById('amc-pill');
+  const a = D.amc;
+  if(!a.end){ pill.textContent='⬤ Not Set'; pill.className='amc-pill amc-none'; return; }
+  const now = new Date(); now.setHours(0,0,0,0);
+  const diff = Math.ceil((new Date(a.end)-now)/(1000*86400));
+  const warn = a.warn||30;
+  if(diff<0){ pill.textContent='⬤ Expired!'; pill.className='amc-pill amc-exp'; }
+  else if(diff<=warn){ pill.textContent='⬤ '+diff+' days left'; pill.className='amc-pill amc-warn'; }
+  else { pill.textContent='⬤ Active ('+diff+'d)'; pill.className='amc-pill amc-ok'; }
+}
+function checkAmcAlert(){
+  const a = D.amc; if(!a.end) return;
+  const now=new Date(); now.setHours(0,0,0,0);
+  const diff=Math.ceil((new Date(a.end)-now)/(1000*86400));
+  if(diff<0) setTimeout(()=>toast('⚠️ AMC Expired! Please renew.',4000),1200);
+  else if(diff<=(a.warn||30)) setTimeout(()=>toast('⏰ AMC expiring in '+diff+' days!',4000),1200);
+}
+function saveShop(){
+  D.shop = {
+    name:document.getElementById('set-shop').value,   owner:document.getElementById('set-owner').value,
+    mobile:document.getElementById('set-mobile').value, addr:document.getElementById('set-addr').value,
+    gst:document.getElementById('set-gst').value, pan:document.getElementById('set-pan').value
+  };
+  SAVE(); toast('✅ Shop info saved!');
+}
+function changePwd(){
+  const old=document.getElementById('pw-old').value;
+  const nw=document.getElementById('pw-new').value;
+  const con=document.getElementById('pw-con').value;
+  if(old!==D.auth.password){ toast('⚠️ Current password wrong!'); return; }
+  if(nw!==con){ toast('⚠️ Passwords do not match!'); return; }
+  if(nw.length<4){ toast('⚠️ Password too short (min 4)!'); return; }
+  D.auth.password=nw; SAVE();
+  toast('✅ Password updated!');
+  ['pw-old','pw-new','pw-con'].forEach(id=>document.getElementById(id).value='');
+}
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+LOAD();
+applyTheme();
+</script>
+</body>
+</html>

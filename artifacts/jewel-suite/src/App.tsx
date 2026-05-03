@@ -9,7 +9,6 @@ import CustomersIndex from "@/pages/customers";
 import CustomerDetail from "@/pages/customers/detail";
 import ProductsIndex from "@/pages/products";
 import InvoicesIndex from "@/pages/invoices";
-import InvoiceNew from "@/pages/invoices/new";
 import InvoiceDetail from "@/pages/invoices/detail";
 import EstimatesIndex from "@/pages/estimates";
 import EstimateNew from "@/pages/estimates/new";
@@ -33,6 +32,10 @@ import SalesReport from "@/pages/reports/sales";
 import GstReport from "@/pages/reports/gst";
 import StockReport from "@/pages/reports/stock";
 import GirviReport from "@/pages/reports/girvi-report";
+import KarigarIndex from "@/pages/karigar";
+import IssueIndex from "@/pages/issue";
+import RatesIndex from "@/pages/rates";
+import JewelBill from "@/pages/billing/jewel-bill";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -57,8 +60,14 @@ function Router() {
 
         <Route path="/invoices" component={InvoicesIndex} />
         <Route path="/invoices/:id" component={InvoiceDetail} />
-        <Route path="/billing/retail/new" component={InvoiceNew} />
-        <Route path="/billing/wholesale/new" component={InvoiceNew} />
+
+        {/* Enhanced Jewar billing — all 6 types */}
+        <Route path="/billing/retail/new" component={JewelBill} />
+        <Route path="/billing/wholesale/new" component={JewelBill} />
+        <Route path="/billing/gold/new" component={JewelBill} />
+        <Route path="/billing/diamond/new" component={JewelBill} />
+        <Route path="/billing/exchange/new" component={JewelBill} />
+        <Route path="/billing/repair/new" component={JewelBill} />
 
         <Route path="/estimates" component={EstimatesIndex} />
         <Route path="/estimates/new" component={EstimateNew} />
@@ -70,20 +79,24 @@ function Router() {
 
         <Route path="/ledger" component={LedgerIndex} />
 
+        {/* Workshop — full job tracking */}
         <Route path="/karigars" component={KarigarsIndex} />
         <Route path="/karigar-jobs" component={KarigarJobsIndex} />
-
         <Route path="/repairs" component={RepairsIndex} />
+
+        {/* Workshop — simple issue register + karigar profile */}
+        <Route path="/issue" component={IssueIndex} />
+        <Route path="/karigar" component={KarigarIndex} />
 
         <Route path="/schemes" component={SchemesIndex} />
         <Route path="/schemes/:id" component={SchemeAccountDetail} />
-
-        <Route path="/settings" component={SettingsPage} />
 
         <Route path="/purchases" component={PurchasesIndex} />
         <Route path="/purchases/new" component={PurchaseNew} />
         <Route path="/purchases/:id" component={PurchaseDetail} />
 
+        <Route path="/rates" component={RatesIndex} />
+        <Route path="/settings" component={SettingsPage} />
         <Route path="/amc" component={AmcPage} />
 
         <Route path="/reports/daybook" component={DaybookReport} />

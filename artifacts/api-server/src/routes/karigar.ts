@@ -4,6 +4,7 @@ import {
   db,
   karigarsTable,
   karigarJobsTable,
+  karigarTable,
 } from "@workspace/db";
 import {
   ListKarigarsResponse,
@@ -26,6 +27,8 @@ import {
 import { n, nextSerial } from "../lib/calc";
 
 const router: IRouter = Router();
+
+// ── Full karigar profiles with job stats (codegen-backed) ──────────────────
 
 router.get("/karigars", async (_req, res): Promise<void> => {
   const rows = await db
@@ -137,6 +140,8 @@ router.delete("/karigars/:id", async (req, res): Promise<void> => {
   await db.delete(karigarsTable).where(eq(karigarsTable.id, params.data.id));
   res.json(DeleteKarigarResponse.parse({ ok: true }));
 });
+
+// ── Karigar Jobs ────────────────────────────────────────────────────────────
 
 function summarizeJob(
   j: typeof karigarJobsTable.$inferSelect,
@@ -270,6 +275,43 @@ router.delete("/karigar-jobs/:id", async (req, res): Promise<void> => {
     .delete(karigarJobsTable)
     .where(eq(karigarJobsTable.id, params.data.id));
   res.json(DeleteKarigarJobResponse.parse({ ok: true }));
+});
+
+// ── Simple karigar profile CRUD (used by Issue Register / Jewar Bill pages) ─
+
+router.get("/karigar", async (_req, res): Promise<void> => {
+  const rows = await db
+    .select()
+    .from(karigarTable)
+    .orderBy(desc(karigarTable.createdAt));
+  res.json(rows);
+});
+
+router.post("/karigar", async (req, res): Promise<void> => {
+  const { name, mobile, specialization, rateType, rate, address } = req.body;
+  if (!name) {
+    res.status(400).json({ error: "name is required" });
+    return;
+  }
+  const [row] = await db
+    .insert(karigarTable)
+    .values({
+      name,
+      mobile: mobile ?? "",
+      specialization: specialization ?? "All Work",
+      rateType: rateType ?? "Per Gram",
+      rate: String(rate ?? 0),
+      address: address ?? "",
+    })
+    .returning();
+  res.status(201).json(row);
+});
+
+router.delete("/karigar/:id", async (req, res): Promise<void> => {
+  await db
+    .delete(karigarTable)
+    .where(eq(karigarTable.id, req.params.id));
+  res.json({ ok: true });
 });
 
 export default router;
