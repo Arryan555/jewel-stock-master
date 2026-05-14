@@ -39,11 +39,13 @@ import { cn } from "@/lib/utils";
 const BILL_TYPES = [
   { code: "JB", label: "Retail Sale",   prefix: "JB-", path: "/billing/retail/new" },
   { code: "WS", label: "Wholesale",     prefix: "WS-", path: "/billing/wholesale/new" },
-  { code: "GD", label: "Gold Bill",     prefix: "GD-", path: "/billing/gold/new" },
-  { code: "DM", label: "Diamond Bill",  prefix: "DM-", path: "/billing/diamond/new" },
+  { code: "PB", label: "Purchase Bill", prefix: "PB-", path: "/billing/purchase/new" },
+  { code: "KB", label: "Karigar Bill",  prefix: "KB-", path: "/billing/karigar/new" },
   { code: "EX", label: "Exchange",      prefix: "EX-", path: "/billing/exchange/new" },
   { code: "RP", label: "Repair Bill",   prefix: "RP-", path: "/billing/repair/new" },
 ] as const;
+
+const GST_RATES = [0, 0.25, 1.5, 3, 5, 12, 18, 28];
 
 const ITEM_SUGGESTIONS = [
   "Ring", "Bangle", "Necklace", "Chain", "Earring", "Pendant",
@@ -82,8 +84,9 @@ interface BillRow {
 interface PaymentRow {
   key: string;
   mode: PaymentMode;
-  amount: number;
-  metalGrams: number;
+  amount: number;      // ₹ for cash modes; auto = rate × fineGrams for metal modes
+  rate: number;        // ₹/g — only used for Gold/Silver payment
+  fineGrams: number;   // fine grams paid — only used for Gold/Silver payment
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -602,44 +605,61 @@ export default function JewelBill() {
 
   // Payments
   const [payments, setPayments] = useState<PaymentRow[]>([
-    { key: rk(), mode: "Cash", amount: 0, metalGrams: 0 },
+    { key: rk(), mode: "Cash", amount: 0, rate: 0, fineGrams: 0 },
   ]);
+
+  // GST
+  const [gstRate, setGstRate] = useState(0);        // percentage
+  const [gstManual, setGstManual] = useState<number | null>(null); // manual override
 
   const { data: customers } = useListCustomers({ type: "all" });
   const create = useCreateInvoice();
-
-  const isJewelBill = billType.code === "JB" || billType.code === "WS";
 
   // ─── Totals ───────────────────────────────────────────────────────────────
 
   const totals = useMemo(() => {
     const saleTotal = rows.reduce((s, r) => s + rowAmount(r), 0);
     const exchTotal = exchangeRows.reduce((s, r) => s + rowAmount(r), 0);
-    const netPayable = Math.max(0, saleTotal - exchTotal - discount);
+    const preTax    = Math.max(0, saleTotal - exchTotal - discount);
+    const gstAmount = gstManual !== null ? gstManual : preTax * gstRate / 100;
+    const netPayable = preTax + gstAmount;
 
-    // Fine weight breakdown by metal for balance tracking
     const goldFine   = rows.filter(r => r.metal === "Gold").reduce((s, r) => s + fineGrams(r), 0);
     const silverFine = rows.filter(r => r.metal === "Silver").reduce((s, r) => s + fineGrams(r), 0);
     const goldExch   = exchangeRows.filter(r => r.metal === "Gold").reduce((s, r) => s + fineGrams(r), 0);
     const silverExch = exchangeRows.filter(r => r.metal === "Silver").reduce((s, r) => s + fineGrams(r), 0);
 
+    // Cash paid = non-metal modes only (metal modes clear as gram balances)
     const cashPaid   = payments.filter(p => !["Gold Payment", "Silver Payment"].includes(p.mode)).reduce((s, p) => s + p.amount, 0);
-    const goldPaid   = payments.filter(p => p.mode === "Gold Payment").reduce((s, p) => s + p.metalGrams, 0);
-    const silverPaid = payments.filter(p => p.mode === "Silver Payment").reduce((s, p) => s + p.metalGrams, 0);
+    const goldPaid   = payments.filter(p => p.mode === "Gold Payment").reduce((s, p) => s + p.fineGrams, 0);
+    const silverPaid = payments.filter(p => p.mode === "Silver Payment").reduce((s, p) => s + p.fineGrams, 0);
 
     return {
-      saleTotal, exchTotal, netPayable, cashPaid,
+      saleTotal, exchTotal, preTax, gstAmount, netPayable, cashPaid,
       goldBalance:   goldFine   - goldExch   - goldPaid,
       silverBalance: silverFine - silverExch - silverPaid,
       cashBalance:   netPayable - cashPaid,
     };
-  }, [rows, exchangeRows, discount, payments]);
+  }, [rows, exchangeRows, discount, payments, gstRate, gstManual]);
 
   // ─── Payment handlers ─────────────────────────────────────────────────────
 
-  const addPayment = () => setPayments(prev => [...prev, { key: rk(), mode: "Cash", amount: 0, metalGrams: 0 }]);
+  const addPayment = () =>
+    setPayments(prev => [...prev, { key: rk(), mode: "Cash", amount: 0, rate: 0, fineGrams: 0 }]);
+
   const updatePayment = (key: string, field: string, value: unknown) =>
-    setPayments(prev => prev.map(p => p.key === key ? { ...p, [field]: value } : p));
+    setPayments(prev => prev.map(p => {
+      if (p.key !== key) return p;
+      const updated = { ...p, [field]: value };
+      // For metal payments: auto-compute ₹ amount from rate × fineGrams
+      if ((field === "rate" || field === "fineGrams") && (p.mode === "Gold Payment" || p.mode === "Silver Payment")) {
+        const r = field === "rate"      ? (value as number) : p.rate;
+        const f = field === "fineGrams" ? (value as number) : p.fineGrams;
+        updated.amount = r * f;
+      }
+      return updated;
+    }));
+
   const removePayment = (key: string) =>
     setPayments(prev => prev.filter(p => p.key !== key));
 
@@ -721,7 +741,7 @@ export default function JewelBill() {
             <Printer className="h-4 w-4 mr-2" />
             Print
           </Button>
-          <Button size="sm" onClick={onSave} disabled={create.isPending || !isJewelBill}>
+          <Button size="sm" onClick={onSave} disabled={create.isPending}>
             <Save className="h-4 w-4 mr-2" />
             {create.isPending ? "Saving…" : "Save Bill"}
           </Button>
@@ -775,190 +795,221 @@ export default function JewelBill() {
         </CardContent>
       </Card>
 
-      {isJewelBill ? (
-        <>
-          {/* ── Sale Items Table ── */}
-          <ItemsTable rows={rows} setRows={setRows} title="Sale Items" />
+      <>
+        {/* ── Sale Items Table ── */}
+        <ItemsTable rows={rows} setRows={setRows} title="Sale Items" />
 
-          {/* ── Totals summary strip ── */}
-          {rows.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 px-1">
-              {[
-                { label: "Sale Total", value: `₹${g(totals.saleTotal, 2)}`, accent: "text-primary" },
-                { label: "Exchange Value", value: `− ₹${g(totals.exchTotal, 2)}`, accent: "text-sky-700" },
-                { label: "Discount", value: `− ₹${g(discount, 2)}`, accent: "text-muted-foreground" },
-                { label: "Net Payable", value: `₹${g(totals.netPayable, 2)}`, accent: "text-emerald-700 text-base font-bold" },
-              ].map(({ label, value, accent }) => (
-                <div key={label} className="bg-secondary/30 rounded-lg px-3 py-2 border">
-                  <div className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</div>
-                  <div className={cn("font-mono font-semibold mt-0.5", accent)}>{value}</div>
-                </div>
-              ))}
-            </div>
-          )}
+        {/* ── Totals summary strip ── */}
+        {rows.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 px-1">
+            {[
+              { label: "Sale Total",     value: `₹${g(totals.saleTotal, 2)}`,  accent: "text-primary" },
+              { label: "Exchange Value", value: `− ₹${g(totals.exchTotal, 2)}`, accent: "text-sky-700" },
+              { label: "Discount",       value: `− ₹${g(discount, 2)}`,         accent: "text-muted-foreground" },
+              { label: "Net Payable",    value: `₹${g(totals.netPayable, 2)}`,  accent: "text-emerald-700 text-base font-bold" },
+            ].map(({ label, value, accent }) => (
+              <div key={label} className="bg-secondary/30 rounded-lg px-3 py-2 border">
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</div>
+                <div className={cn("font-mono font-semibold mt-0.5", accent)}>{value}</div>
+              </div>
+            ))}
+          </div>
+        )}
 
-          {/* ── Exchange / Old Metal Return Table ── */}
-          <ItemsTable
-            rows={exchangeRows}
-            setRows={setExchangeRows}
-            title="Exchange / Old Metal Return"
-            isExchange
-          />
+        {/* ── Exchange / Old Metal Return Table ── */}
+        <ItemsTable
+          rows={exchangeRows}
+          setRows={setExchangeRows}
+          title="Exchange / Old Metal Return"
+          isExchange
+        />
 
-          {/* ── Payments + Summary ── */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Payment Modes */}
-            <Card className="shadow-sm">
-              <CardHeader className="pb-2 border-b flex flex-row items-center justify-between">
-                <CardTitle className="text-sm font-serif">Payment Received</CardTitle>
-                <Button size="sm" variant="outline" onClick={addPayment}>
-                  <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Mode
-                </Button>
-              </CardHeader>
-              <CardContent className="pt-4 space-y-2">
-                {payments.map(p => (
-                  <div key={p.key} className="flex gap-2 items-center">
-                    <Select
-                      value={p.mode}
-                      onValueChange={v => updatePayment(p.key, "mode", v as PaymentMode)}
-                    >
-                      <SelectTrigger className="h-8 w-[160px] text-sm flex-shrink-0">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {PAYMENT_MODES.map(m => (
-                          <SelectItem key={m} value={m}>{m}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {isMetalPayment(p.mode) ? (
-                      <>
-                        <Input
-                          type="number" step="0.001"
-                          value={p.metalGrams || ""}
-                          onChange={e => updatePayment(p.key, "metalGrams", parseFloat(e.target.value) || 0)}
-                          placeholder="Grams" className="h-8 text-right font-mono text-sm flex-1"
-                        />
-                        <span className="text-xs text-muted-foreground flex-shrink-0">g</span>
-                      </>
-                    ) : (
+        {/* ── Payments + Summary ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Payment Modes */}
+          <Card className="shadow-sm">
+            <CardHeader className="pb-2 border-b flex flex-row items-center justify-between">
+              <CardTitle className="text-sm font-serif">Payment Received</CardTitle>
+              <Button size="sm" variant="outline" onClick={addPayment}>
+                <Plus className="h-3.5 w-3.5 mr-1.5" /> Add Mode
+              </Button>
+            </CardHeader>
+            <CardContent className="pt-4 space-y-2">
+              {payments.map(p => (
+                <div key={p.key} className="flex gap-1.5 items-center">
+                  <Select
+                    value={p.mode}
+                    onValueChange={v => updatePayment(p.key, "mode", v as PaymentMode)}
+                  >
+                    <SelectTrigger className="h-8 w-[148px] text-sm flex-shrink-0">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PAYMENT_MODES.map(m => (
+                        <SelectItem key={m} value={m}>{m}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {isMetalPayment(p.mode) ? (
+                    /* 3-column metal payment: Rate | Fine (g) | Amount (auto) */
+                    <>
                       <Input
                         type="number" step="0.01"
-                        value={p.amount || ""}
-                        onChange={e => updatePayment(p.key, "amount", parseFloat(e.target.value) || 0)}
-                        placeholder="Amount ₹" className="h-8 text-right font-mono text-sm flex-1"
+                        value={p.rate || ""}
+                        onChange={e => updatePayment(p.key, "rate", parseFloat(e.target.value) || 0)}
+                        placeholder="Rate ₹/g"
+                        className="h-8 text-right font-mono text-xs w-[80px] flex-shrink-0"
                       />
-                    )}
-                    <Button
-                      variant="ghost" size="icon"
-                      className="h-8 w-8 text-destructive flex-shrink-0"
-                      onClick={() => removePayment(p.key)}
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            {/* Summary & Balance */}
-            <Card className="shadow-sm border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
-              <CardHeader className="pb-2 border-b border-primary/20">
-                <CardTitle className="text-sm font-serif">Summary & Balance</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-4 space-y-3">
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Sale Total</span>
-                    <span className="font-mono">{formatCurrency(totals.saleTotal)}</span>
-                  </div>
-                  {totals.exchTotal > 0 && (
-                    <div className="flex justify-between text-sky-700">
-                      <span>Exchange Value</span>
-                      <span className="font-mono">− {formatCurrency(totals.exchTotal)}</span>
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Discount (₹)</span>
+                      <Input
+                        type="number" step="0.001"
+                        value={p.fineGrams || ""}
+                        onChange={e => updatePayment(p.key, "fineGrams", parseFloat(e.target.value) || 0)}
+                        placeholder="Fine (g)"
+                        className="h-8 text-right font-mono text-xs w-[72px] flex-shrink-0"
+                      />
+                      <div className="h-8 flex items-center justify-end px-2 bg-amber-50 border border-amber-200 rounded-md text-xs font-mono text-amber-800 flex-1 min-w-0 whitespace-nowrap overflow-hidden">
+                        ₹{(p.rate * p.fineGrams).toFixed(2)}
+                      </div>
+                    </>
+                  ) : (
                     <Input
                       type="number" step="0.01"
-                      value={discount || ""}
-                      onChange={e => setDiscount(parseFloat(e.target.value) || 0)}
-                      className="w-28 h-7 text-right font-mono text-sm"
+                      value={p.amount || ""}
+                      onChange={e => updatePayment(p.key, "amount", parseFloat(e.target.value) || 0)}
+                      placeholder="Amount ₹"
+                      className="h-8 text-right font-mono text-sm flex-1"
                     />
+                  )}
+
+                  <Button
+                    variant="ghost" size="icon"
+                    className="h-8 w-8 text-destructive flex-shrink-0"
+                    onClick={() => removePayment(p.key)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Summary & Balance */}
+          <Card className="shadow-sm border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
+            <CardHeader className="pb-2 border-b border-primary/20">
+              <CardTitle className="text-sm font-serif">Summary & Balance</CardTitle>
+            </CardHeader>
+            <CardContent className="pt-4 space-y-3">
+              <div className="space-y-1.5 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Sale Total</span>
+                  <span className="font-mono">{formatCurrency(totals.saleTotal)}</span>
+                </div>
+                {totals.exchTotal > 0 && (
+                  <div className="flex justify-between text-sky-700">
+                    <span>Exchange Value</span>
+                    <span className="font-mono">− {formatCurrency(totals.exchTotal)}</span>
                   </div>
-                </div>
-
-                <div className="flex justify-between border-t border-primary/30 pt-2">
-                  <span className="font-serif text-base font-semibold">Net Payable</span>
-                  <span className="font-serif text-xl font-bold text-primary">
-                    {formatCurrency(totals.netPayable)}
-                  </span>
-                </div>
-
-                {/* 3-way balance */}
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    {
-                      label: "Cash Bal",
-                      val: totals.cashBalance,
-                      fmt: (v: number) => formatCurrency(Math.abs(v)),
-                      warn: (v: number) => v > 0.01,
-                      colors: { warn: "border-red-300 bg-red-50 text-red-700", ok: "border-green-300 bg-green-50 text-green-700" },
-                    },
-                    {
-                      label: "Gold Bal(g)",
-                      val: totals.goldBalance,
-                      fmt: (v: number) => v.toFixed(3),
-                      warn: (v: number) => Math.abs(v) > 0.001,
-                      colors: { warn: "border-amber-300 bg-amber-50 text-amber-700", ok: "border-green-300 bg-green-50 text-green-700" },
-                    },
-                    {
-                      label: "Silver Bal(g)",
-                      val: totals.silverBalance,
-                      fmt: (v: number) => v.toFixed(3),
-                      warn: (v: number) => Math.abs(v) > 0.001,
-                      colors: { warn: "border-sky-300 bg-sky-50 text-sky-700", ok: "border-green-300 bg-green-50 text-green-700" },
-                    },
-                  ].map(({ label, val, fmt, warn, colors }) => (
-                    <div
-                      key={label}
-                      className={`rounded-lg border p-2 text-center ${warn(val) ? colors.warn : colors.ok}`}
-                    >
-                      <div className="text-[10px] text-muted-foreground mb-0.5">{label}</div>
-                      <div className="font-bold font-mono text-xs">{fmt(val)}</div>
-                    </div>
-                  ))}
-                </div>
-
-                <div>
-                  <Label className="text-xs text-muted-foreground">Notes</Label>
+                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-muted-foreground">Discount (₹)</span>
                   <Input
-                    value={notes}
-                    onChange={e => setNotes(e.target.value)}
-                    placeholder="Internal notes…"
-                    className="mt-1 h-8 text-sm"
+                    type="number" step="0.01"
+                    value={discount || ""}
+                    onChange={e => setDiscount(parseFloat(e.target.value) || 0)}
+                    className="w-28 h-7 text-right font-mono text-sm"
                   />
                 </div>
 
-                <Button className="w-full" onClick={onSave} disabled={create.isPending}>
-                  <Save className="h-4 w-4 mr-2" />
-                  {create.isPending ? "Saving…" : "Save & Finalize Bill"}
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </>
-      ) : (
-        /* Placeholder for GD / DM / EX / RP */
-        <Card className="shadow-sm">
-          <CardContent className="py-16 text-center text-muted-foreground space-y-2">
-            <div className="text-3xl">🔨</div>
-            <p className="font-medium">{billType.label} form coming soon</p>
-            <p className="text-xs">This voucher type uses a specialised entry form.</p>
-          </CardContent>
-        </Card>
-      )}
+                {/* ── GST ── */}
+                <div className="flex items-center justify-between gap-2 pt-1 border-t border-dashed">
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-muted-foreground text-xs">GST</span>
+                    <Select
+                      value={String(gstRate)}
+                      onValueChange={v => { setGstRate(Number(v)); setGstManual(null); }}
+                    >
+                      <SelectTrigger className="h-6 w-[64px] text-xs px-1.5">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {GST_RATES.map(r => (
+                          <SelectItem key={r} value={String(r)}>{r}%</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Input
+                    type="number" step="0.01"
+                    value={gstManual !== null ? gstManual : g(totals.gstAmount, 2)}
+                    onChange={e => setGstManual(parseFloat(e.target.value) || 0)}
+                    onFocus={() => { if (gstManual === null) setGstManual(parseFloat(g(totals.gstAmount, 2))); }}
+                    className="w-28 h-7 text-right font-mono text-sm"
+                    placeholder="₹ GST"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-between border-t border-primary/30 pt-2">
+                <span className="font-serif text-base font-semibold">Net Payable</span>
+                <span className="font-serif text-xl font-bold text-primary">
+                  {formatCurrency(totals.netPayable)}
+                </span>
+              </div>
+
+              {/* 3-way balance */}
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  {
+                    label: "Cash Bal",
+                    val: totals.cashBalance,
+                    fmt: (v: number) => formatCurrency(Math.abs(v)),
+                    warn: (v: number) => v > 0.01,
+                    colors: { warn: "border-red-300 bg-red-50 text-red-700", ok: "border-green-300 bg-green-50 text-green-700" },
+                  },
+                  {
+                    label: "Gold Bal(g)",
+                    val: totals.goldBalance,
+                    fmt: (v: number) => v.toFixed(3),
+                    warn: (v: number) => Math.abs(v) > 0.001,
+                    colors: { warn: "border-amber-300 bg-amber-50 text-amber-700", ok: "border-green-300 bg-green-50 text-green-700" },
+                  },
+                  {
+                    label: "Silver Bal(g)",
+                    val: totals.silverBalance,
+                    fmt: (v: number) => v.toFixed(3),
+                    warn: (v: number) => Math.abs(v) > 0.001,
+                    colors: { warn: "border-sky-300 bg-sky-50 text-sky-700", ok: "border-green-300 bg-green-50 text-green-700" },
+                  },
+                ].map(({ label, val, fmt, warn, colors }) => (
+                  <div
+                    key={label}
+                    className={`rounded-lg border p-2 text-center ${warn(val) ? colors.warn : colors.ok}`}
+                  >
+                    <div className="text-[10px] text-muted-foreground mb-0.5">{label}</div>
+                    <div className="font-bold font-mono text-xs">{fmt(val)}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div>
+                <Label className="text-xs text-muted-foreground">Notes</Label>
+                <Input
+                  value={notes}
+                  onChange={e => setNotes(e.target.value)}
+                  placeholder="Internal notes…"
+                  className="mt-1 h-8 text-sm"
+                />
+              </div>
+
+              <Button className="w-full" onClick={onSave} disabled={create.isPending}>
+                <Save className="h-4 w-4 mr-2" />
+                {create.isPending ? "Saving…" : "Save & Finalize Bill"}
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </>
     </div>
   );
 }

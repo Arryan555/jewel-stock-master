@@ -61,9 +61,11 @@ function Router() {
         <Route path="/invoices" component={InvoicesIndex} />
         <Route path="/invoices/:id" component={InvoiceDetail} />
 
-        {/* Enhanced Jewar billing — all 6 types */}
+        {/* Enhanced Jewar billing — all bill types use same form */}
         <Route path="/billing/retail/new" component={JewelBill} />
         <Route path="/billing/wholesale/new" component={JewelBill} />
+        <Route path="/billing/purchase/new" component={JewelBill} />
+        <Route path="/billing/karigar/new" component={JewelBill} />
         <Route path="/billing/gold/new" component={JewelBill} />
         <Route path="/billing/diamond/new" component={JewelBill} />
         <Route path="/billing/exchange/new" component={JewelBill} />
