@@ -99,7 +99,7 @@ function netGrams(row: BillRow): number {
 
 function fineGrams(row: BillRow): number {
   const net = netGrams(row);
-  const eff = Math.max(0, row.tunch - row.waste);
+  const eff = row.tunch + row.waste;   // waste adds to fineness (premium surcharge)
   return net * eff / 100;
 }
 
@@ -298,7 +298,7 @@ function BillRowComp({
       {/* Less */}
       <td className={cn(TD, "w-[70px]")}>
         <Input
-          type="number" step="0.001"
+          type="number" step="any"
           value={row.lessGrams || ""}
           onChange={e => set("lessGrams", num(e))}
           className={INP} placeholder="0.000"
@@ -629,10 +629,15 @@ export default function JewelBill() {
     const goldExch   = exchangeRows.filter(r => r.metal === "Gold").reduce((s, r) => s + fineGrams(r), 0);
     const silverExch = exchangeRows.filter(r => r.metal === "Silver").reduce((s, r) => s + fineGrams(r), 0);
 
-    // Cash paid = non-metal modes only (metal modes clear as gram balances)
-    const cashPaid   = payments.filter(p => !["Gold Payment", "Silver Payment"].includes(p.mode)).reduce((s, p) => s + p.amount, 0);
-    const goldPaid   = payments.filter(p => p.mode === "Gold Payment").reduce((s, p) => s + p.fineGrams, 0);
-    const silverPaid = payments.filter(p => p.mode === "Silver Payment").reduce((s, p) => s + p.fineGrams, 0);
+    // Metal payment with rate > 0 → treated as cash (₹ value); rate = 0 → gram balance
+    const cashPaid = payments.reduce((s, p) => {
+      if (p.mode === "Gold Payment" || p.mode === "Silver Payment") {
+        return p.rate > 0 ? s + p.amount : s;   // rate set → ₹ clears cash balance
+      }
+      return s + p.amount;
+    }, 0);
+    const goldPaid   = payments.filter(p => p.mode === "Gold Payment"   && p.rate === 0).reduce((s, p) => s + p.fineGrams, 0);
+    const silverPaid = payments.filter(p => p.mode === "Silver Payment" && p.rate === 0).reduce((s, p) => s + p.fineGrams, 0);
 
     return {
       saleTotal, exchTotal, preTax, gstAmount, netPayable, cashPaid,
