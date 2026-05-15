@@ -36,6 +36,7 @@ import KarigarIndex from "@/pages/karigar";
 import IssueIndex from "@/pages/issue";
 import RatesIndex from "@/pages/rates";
 import JewelBill from "@/pages/billing/jewel-bill";
+import SuperAdminPage from "@/pages/admin/index";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -100,6 +101,7 @@ function Router() {
         <Route path="/rates" component={RatesIndex} />
         <Route path="/settings" component={SettingsPage} />
         <Route path="/amc" component={AmcPage} />
+        <Route path="/admin" component={SuperAdminPage} />
 
         <Route path="/reports/daybook" component={DaybookReport} />
         <Route path="/reports/sales" component={SalesReport} />

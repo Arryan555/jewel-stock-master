@@ -734,11 +734,11 @@ export default function JewelBill() {
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </Link>
-            <h1 className="text-2xl font-serif font-bold">Jewar Bill</h1>
-            <Badge className="bg-amber-100 text-amber-800 border-amber-300 text-xs">{billType.label}</Badge>
+            <h1 className="text-2xl font-serif font-bold">{billType.label}</h1>
+            <Badge className="bg-amber-100 text-amber-800 border-amber-300 text-xs">{billType.prefix}****</Badge>
           </div>
           <p className="text-muted-foreground text-sm mt-0.5 ml-10">
-            Create a new {billType.label.toLowerCase()} — {billType.prefix}****
+            Create a new {billType.label.toLowerCase()}
           </p>
         </div>
         <div className="flex gap-2">
@@ -801,17 +801,24 @@ export default function JewelBill() {
       </Card>
 
       <>
-        {/* ── Sale Items Table ── */}
-        <ItemsTable rows={rows} setRows={setRows} title="Sale Items" />
+        {/* ── Items Table (Sale or Purchase depending on bill type) ── */}
+        <ItemsTable
+          rows={rows}
+          setRows={setRows}
+          title={billType.code === "PB" ? "Purchase Items" : "Sale Items"}
+        />
 
         {/* ── Totals summary strip ── */}
         {rows.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 px-1">
             {[
-              { label: "Sale Total",     value: `₹${g(totals.saleTotal, 2)}`,  accent: "text-primary" },
-              { label: "Exchange Value", value: `− ₹${g(totals.exchTotal, 2)}`, accent: "text-sky-700" },
-              { label: "Discount",       value: `− ₹${g(discount, 2)}`,         accent: "text-muted-foreground" },
-              { label: "Net Payable",    value: `₹${g(totals.netPayable, 2)}`,  accent: "text-emerald-700 text-base font-bold" },
+              { label: billType.code === "PB" ? "Purchase Total" : "Sale Total",
+                value: `₹${g(totals.saleTotal, 2)}`,  accent: "text-primary" },
+              ...(billType.code !== "PB" ? [
+                { label: "Exchange Value", value: `− ₹${g(totals.exchTotal, 2)}`, accent: "text-sky-700" },
+              ] : []),
+              { label: "Discount",    value: `− ₹${g(discount, 2)}`,        accent: "text-muted-foreground" },
+              { label: "Net Payable", value: `₹${g(totals.netPayable, 2)}`, accent: "text-emerald-700 text-base font-bold" },
             ].map(({ label, value, accent }) => (
               <div key={label} className="bg-secondary/30 rounded-lg px-3 py-2 border">
                 <div className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</div>
@@ -821,13 +828,15 @@ export default function JewelBill() {
           </div>
         )}
 
-        {/* ── Exchange / Old Metal Return Table ── */}
-        <ItemsTable
-          rows={exchangeRows}
-          setRows={setExchangeRows}
-          title="Exchange / Old Metal Return"
-          isExchange
-        />
+        {/* ── Exchange / Old Metal Return — hidden for Purchase Bill ── */}
+        {billType.code !== "PB" && (
+          <ItemsTable
+            rows={exchangeRows}
+            setRows={setExchangeRows}
+            title="Exchange / Old Metal Return"
+            isExchange
+          />
+        )}
 
         {/* ── Payments + Summary ── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
