@@ -675,10 +675,6 @@ export default function JewelBill() {
       toast({ title: "Please select a customer", variant: "destructive" });
       return;
     }
-    if (rows.length === 0) {
-      toast({ title: "Please add at least one item", variant: "destructive" });
-      return;
-    }
     try {
       const res = await create.mutateAsync({
         data: {
@@ -828,15 +824,13 @@ export default function JewelBill() {
           </div>
         )}
 
-        {/* ── Exchange / Old Metal Return — hidden for Purchase Bill ── */}
-        {billType.code !== "PB" && (
-          <ItemsTable
-            rows={exchangeRows}
-            setRows={setExchangeRows}
-            title="Exchange / Old Metal Return"
-            isExchange
-          />
-        )}
+        {/* ── Exchange / Old Metal Return ── */}
+        <ItemsTable
+          rows={exchangeRows}
+          setRows={setExchangeRows}
+          title="Exchange / Old Metal Return"
+          isExchange
+        />
 
         {/* ── Payments + Summary ── */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
