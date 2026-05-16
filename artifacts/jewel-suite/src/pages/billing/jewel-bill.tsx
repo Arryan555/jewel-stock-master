@@ -624,15 +624,18 @@ export default function JewelBill() {
     const gstAmount = gstManual !== null ? gstManual : preTax * gstRate / 100;
     const netPayable = preTax + gstAmount;
 
-    const goldFine   = rows.filter(r => r.metal === "Gold").reduce((s, r) => s + fineGrams(r), 0);
-    const silverFine = rows.filter(r => r.metal === "Silver").reduce((s, r) => s + fineGrams(r), 0);
-    const goldExch   = exchangeRows.filter(r => r.metal === "Gold").reduce((s, r) => s + fineGrams(r), 0);
-    const silverExch = exchangeRows.filter(r => r.metal === "Silver").reduce((s, r) => s + fineGrams(r), 0);
+    // rate/g = 0  → metal/gram settlement → fine grams flow into gold/silver balance
+    // rate/g > 0  → cash/₹ settlement    → fine grams are already priced in ₹, don't touch gram balance
+    const goldFine   = rows.filter(r => r.metal === "Gold"   && r.ratePerGram === 0).reduce((s, r) => s + fineGrams(r), 0);
+    const silverFine = rows.filter(r => r.metal === "Silver" && r.ratePerGram === 0).reduce((s, r) => s + fineGrams(r), 0);
+    // Exchange items: same rule — rate/g = 0 → grams reduce metal balance; rate/g > 0 → already in ₹ via exchTotal
+    const goldExch   = exchangeRows.filter(r => r.metal === "Gold"   && r.ratePerGram === 0).reduce((s, r) => s + fineGrams(r), 0);
+    const silverExch = exchangeRows.filter(r => r.metal === "Silver" && r.ratePerGram === 0).reduce((s, r) => s + fineGrams(r), 0);
 
-    // Metal payment with rate > 0 → treated as cash (₹ value); rate = 0 → gram balance
+    // Metal payment: rate > 0 → ₹ value clears cash balance; rate = 0 → grams clear metal balance
     const cashPaid = payments.reduce((s, p) => {
       if (p.mode === "Gold Payment" || p.mode === "Silver Payment") {
-        return p.rate > 0 ? s + p.amount : s;   // rate set → ₹ clears cash balance
+        return p.rate > 0 ? s + p.amount : s;
       }
       return s + p.amount;
     }, 0);
