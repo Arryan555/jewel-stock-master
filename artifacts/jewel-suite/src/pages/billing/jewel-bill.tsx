@@ -659,11 +659,21 @@ export default function JewelBill() {
     setPayments(prev => prev.map(p => {
       if (p.key !== key) return p;
       const updated = { ...p, [field]: value };
-      // For metal payments: auto-compute ₹ amount from rate × fineGrams
-      if ((field === "rate" || field === "fineGrams") && (p.mode === "Gold Payment" || p.mode === "Silver Payment")) {
-        const r = field === "rate"      ? (value as number) : p.rate;
-        const f = field === "fineGrams" ? (value as number) : p.fineGrams;
-        updated.amount = r * f;
+      const isMetal = p.mode === "Gold Payment" || p.mode === "Silver Payment";
+      if (isMetal) {
+        if (field === "rate" || field === "fineGrams") {
+          // Grams (or rate) changed → derive Amount
+          const r = field === "rate"      ? (value as number) : p.rate;
+          const f = field === "fineGrams" ? (value as number) : p.fineGrams;
+          updated.amount = r * f;
+        } else if (field === "amount") {
+          // Amount (₹) changed → derive Grams (if rate is set)
+          const r = p.rate;
+          updated.fineGrams = r > 0 ? (value as number) / r : p.fineGrams;
+        } else if (field === "mode") {
+          // Switching to a metal mode — reset to 0
+          updated.rate = 0; updated.fineGrams = 0; updated.amount = 0;
+        }
       }
       return updated;
     }));
@@ -863,24 +873,38 @@ export default function JewelBill() {
                   </Select>
 
                   {isMetalPayment(p.mode) ? (
-                    /* 3-column metal payment: Rate | Fine (g) | Amount (auto) */
+                    /* 3-column metal payment: Rate ₹/g | Fine (g) ⇄ Amount ₹  (bidirectional) */
                     <>
                       <Input
                         type="number" step="0.01"
                         value={p.rate || ""}
                         onChange={e => updatePayment(p.key, "rate", parseFloat(e.target.value) || 0)}
                         placeholder="Rate ₹/g"
+                        title="Rate per gram — set to 0 for gram-only settlement"
                         className="h-8 text-right font-mono text-xs w-[80px] flex-shrink-0"
                       />
-                      <Input
-                        type="number" step="0.001"
-                        value={p.fineGrams || ""}
-                        onChange={e => updatePayment(p.key, "fineGrams", parseFloat(e.target.value) || 0)}
-                        placeholder="Fine (g)"
-                        className="h-8 text-right font-mono text-xs w-[72px] flex-shrink-0"
-                      />
-                      <div className="h-8 flex items-center justify-end px-2 bg-amber-50 border border-amber-200 rounded-md text-xs font-mono text-amber-800 flex-1 min-w-0 whitespace-nowrap overflow-hidden">
-                        ₹{(p.rate * p.fineGrams).toFixed(2)}
+                      <div className="relative flex-shrink-0">
+                        <Input
+                          type="number" step="0.001"
+                          value={p.fineGrams || ""}
+                          onChange={e => updatePayment(p.key, "fineGrams", parseFloat(e.target.value) || 0)}
+                          placeholder="g"
+                          title="Fine grams — changing this auto-calculates ₹ Amount"
+                          className="h-8 text-right font-mono text-xs w-[66px] pr-5"
+                        />
+                        <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] text-muted-foreground pointer-events-none">g</span>
+                      </div>
+                      <div className="flex items-center text-[10px] text-muted-foreground flex-shrink-0 select-none">⇄</div>
+                      <div className="relative flex-1 min-w-0">
+                        <Input
+                          type="number" step="0.01"
+                          value={p.amount || ""}
+                          onChange={e => updatePayment(p.key, "amount", parseFloat(e.target.value) || 0)}
+                          placeholder="Amount ₹"
+                          title="Amount in ₹ — changing this auto-calculates grams (÷ Rate)"
+                          className="h-8 text-right font-mono text-xs w-full pr-5 bg-amber-50/60 border-amber-200 focus:bg-white"
+                        />
+                        <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[9px] text-muted-foreground pointer-events-none">₹</span>
                       </div>
                     </>
                   ) : (
