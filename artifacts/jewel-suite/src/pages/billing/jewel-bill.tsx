@@ -992,6 +992,55 @@ export default function JewelBill() {
                 </span>
               </div>
 
+              {/* ── Payment deductions — each mode shown as a line ── */}
+              {payments.some(p => p.amount > 0 || p.fineGrams > 0) && (
+                <div className="space-y-1 border-t border-dashed pt-2">
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wide font-semibold mb-1">
+                    Less: Payments Received
+                  </div>
+                  {payments.map(p => {
+                    const isMetal = p.mode === "Gold Payment" || p.mode === "Silver Payment";
+                    const isGramOnly = isMetal && p.rate === 0 && p.fineGrams > 0;
+                    const hasValue = isMetal ? (p.amount > 0 || p.fineGrams > 0) : p.amount > 0;
+                    if (!hasValue) return null;
+                    return (
+                      <div key={p.key} className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">{p.mode}</span>
+                        <span className={`font-mono font-semibold ${isGramOnly ? "text-amber-700" : "text-emerald-700"}`}>
+                          {isGramOnly
+                            ? `− ${p.fineGrams.toFixed(3)} g`
+                            : `− ${formatCurrency(p.amount)}`}
+                        </span>
+                      </div>
+                    );
+                  })}
+                  {/* Remaining cash balance as a sub-total */}
+                  <div className="flex justify-between items-center pt-1 border-t border-dashed mt-1">
+                    <span className="text-sm font-semibold">Cash Balance</span>
+                    <span className={`font-mono font-bold text-sm ${totals.cashBalance > 0.01 ? "text-red-600" : "text-emerald-700"}`}>
+                      {formatCurrency(Math.abs(totals.cashBalance))}
+                      {totals.cashBalance < -0.01 && <span className="text-[10px] ml-1">(advance)</span>}
+                    </span>
+                  </div>
+                  {totals.goldBalance !== 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-semibold">Gold Balance</span>
+                      <span className={`font-mono font-bold text-sm ${Math.abs(totals.goldBalance) > 0.001 ? "text-amber-700" : "text-emerald-700"}`}>
+                        {totals.goldBalance.toFixed(3)} g
+                      </span>
+                    </div>
+                  )}
+                  {totals.silverBalance !== 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-semibold">Silver Balance</span>
+                      <span className={`font-mono font-bold text-sm ${Math.abs(totals.silverBalance) > 0.001 ? "text-sky-700" : "text-emerald-700"}`}>
+                        {totals.silverBalance.toFixed(3)} g
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* 3-way balance */}
               <div className="grid grid-cols-3 gap-2">
                 {[
