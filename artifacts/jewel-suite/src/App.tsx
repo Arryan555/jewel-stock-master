@@ -1,9 +1,11 @@
-import { Switch, Route, Router as WouterRouter } from "wouter";
+import { Switch, Route, Router as WouterRouter, useLocation, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppLayout } from "@/components/layout/app-layout";
+import { AuthProvider, useAuth } from "@/context/auth";
 
+import LoginPage from "@/pages/login";
 import Dashboard from "@/pages/dashboard";
 import CustomersIndex from "@/pages/customers";
 import CustomerDetail from "@/pages/customers/detail";
@@ -48,7 +50,14 @@ const queryClient = new QueryClient({
   },
 });
 
-function Router() {
+function ProtectedRouter() {
+  const { isAuthenticated } = useAuth();
+  const [location] = useLocation();
+
+  if (!isAuthenticated) {
+    return <Redirect to="/login" />;
+  }
+
   return (
     <AppLayout>
       <Switch>
@@ -62,7 +71,7 @@ function Router() {
         <Route path="/invoices" component={InvoicesIndex} />
         <Route path="/invoices/:id" component={InvoiceDetail} />
 
-        {/* Enhanced Jewar billing — all bill types use same form */}
+        {/* Jewar billing — all bill types use same form */}
         <Route path="/billing/retail/new" component={JewelBill} />
         <Route path="/billing/wholesale/new" component={JewelBill} />
         <Route path="/billing/purchase/new" component={JewelBill} />
@@ -82,12 +91,10 @@ function Router() {
 
         <Route path="/ledger" component={LedgerIndex} />
 
-        {/* Workshop — full job tracking */}
         <Route path="/karigars" component={KarigarsIndex} />
         <Route path="/karigar-jobs" component={KarigarJobsIndex} />
         <Route path="/repairs" component={RepairsIndex} />
 
-        {/* Workshop — simple issue register + karigar profile */}
         <Route path="/issue" component={IssueIndex} />
         <Route path="/karigar" component={KarigarIndex} />
 
@@ -115,12 +122,27 @@ function Router() {
   );
 }
 
+function RootRouter() {
+  const { isAuthenticated } = useAuth();
+
+  return (
+    <Switch>
+      <Route path="/login">
+        {isAuthenticated ? <Redirect to="/" /> : <LoginPage />}
+      </Route>
+      <Route component={ProtectedRouter} />
+    </Switch>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
+          <AuthProvider>
+            <RootRouter />
+          </AuthProvider>
         </WouterRouter>
         <Toaster />
       </TooltipProvider>

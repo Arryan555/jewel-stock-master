@@ -1,4 +1,5 @@
 import { Link, useLocation } from "wouter";
+import { useAuth } from "@/context/auth";
 import {
   LayoutDashboard,
   Users,
@@ -203,8 +204,14 @@ function NavGroupComp({
 }
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [isMobileOpen, setIsMobileOpen] = useState(false);
+  const { user, logout } = useAuth();
+
+  const handleSignOut = () => {
+    logout();
+    setLocation("/login");
+  };
 
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
@@ -257,10 +264,19 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           ))}
         </div>
 
-        <div className="p-3 border-t bg-muted/20 flex-shrink-0">
+        <div className="p-3 border-t bg-muted/20 flex-shrink-0 space-y-1.5">
+          {user && (
+            <div className="px-1 mb-1.5">
+              <p className="text-xs font-medium text-foreground truncate">{user.name}</p>
+              <p className="text-[10px] text-muted-foreground truncate">
+                {user.role === "super_admin" ? "Super Admin" : `ID: ${user.id}`}
+              </p>
+            </div>
+          )}
           <Button
             variant="ghost"
             className="w-full justify-start text-muted-foreground hover:text-foreground text-sm"
+            onClick={handleSignOut}
           >
             <LogOut className="h-4 w-4 mr-2" />
             Sign Out
